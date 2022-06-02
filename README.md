@@ -1,2 +1,3 @@
 # BICEP_AUTOMATION
-Bicep Modules
+
+A variety of different bicep scripts to assist with automating Azure

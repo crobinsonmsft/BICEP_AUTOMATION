@@ -1,4 +1,13 @@
 //=========================================================================================//
+//=====THIS MAIN BICEP FILE CAN ORCHESTRATE THE DEPLOYMENT OF MULTIPLE AZURE SERVICES======//
+//=========================================================================================//
+
+
+
+
+targetScope = 'subscription'
+
+//=========================================================================================//
 //================================== START OF PARAMETERS ==================================//
 //=========================================================================================//
 
@@ -11,17 +20,32 @@ param subscriptionPrefix_underscore string = replace(subscriptionPrefix, '-', '_
                                                                                           //Don't modify this parameter!
 
 
-param location string = resourceGroup().location    //Will use the location of the resource group
-param tags object = {                               // Edit Tags Accordingly
-  secretariat: 'eodot'
-  agency: 'dot'
-  environment: 'nonprod'
-  application: 'datalake'
-  Name: ''
-  createdby: 'EOTSS-DL-AzureCloudOpsSupport@mass.gov'
-  businessowner: 'Bill Cole'
-  itowner: 'EOTSS-DL-AzureCloudOpsSupport@mass.gov'
+@allowed([
+  'Production'
+  'Development'
+  'Sandbox'
+])
+@description('Select the environment we will deploy to')
+param environment string = 'Sandbox'                // Set preferred environment here
+
+//param location string = resourceGroup().location  //Will use the location of the resource group
+param location string = 'eastus'                    // Location that resource will be deployed to
+param tags object = {                               // Edit tags accordingly
+  Environment: environment
+  Owner: 'Calvin Robinson'
+  org: 'ABC-Corp'
 }
+
+//=======Resource Group Parameters=====//
+
+//var env string = condition ? TrueValue : FalseValue
+param env string = ((environment != 'Production' && environment != 'Development') ) ? 'SBX' : 'null' 
+
+param rg_01_name string = 'RG-CONNECTIVITY-${env}-001'
+param rg_02_name string = 'RG-MANAGEMENT-${env}-001'
+param rg_03_name string = 'RG-RESOURCE-${env}-001'
+
+
 
 //===========================================//
 //==========Networking Parameters============//
@@ -30,12 +54,7 @@ param tags object = {                               // Edit Tags Accordingly
 
 //These params will combine to form the actual NSG names that are used in the NSG module below
 
-/*
-param subnet_id_bastion string = '10.205.3.128_26'    //modify this parameter to specify the bastion ip address that will be used to form the bastion NSG name
-param subnet_id_db string = '10.205.3.128_26'         //modify this parameter to specify the db ip address used throughout deployment
-param subnet_id_public string = '10.205.3.128_26'     //modify this parameter to specify the public subnet address used throughout deployment
-param subnet_id_private string = '10.205.3.128_26'    //modify this parameter to specify the private subnet address used throughout deployment
-*/
+
 
 param bastion_prefix_underscore string = replace(subnet_bastion_prefix, '/', '_')     //Same as subnet_bastion_prefix except that it includes an Azure name friendly underscore
 param db_prefix_underscore string = replace(subnet_db_prefix, '/', '_')               //Same as subnet_db_prefix except that it includes an Azure name friendly underscore
@@ -124,7 +143,25 @@ param sku object = {
 //================================== START OF MODULES =====================================//
 //=========================================================================================//
 
+//===Start of Resource Group Modules====//
+  //Resource Group Module
+  module rg 'Modules/Resource_Groups/resourceGroups.bicep' = {
+    name: 'rg-module'
+      params: {
+        tags: tags
+        location: location
+        rg_01_name: rg_01_name
+        rg_02_name: rg_02_name
+        rg_03_name: rg_03_name
+
+      }
+    }
+
+
+
 //=======Start of Network Modules=======//
+
+/*
   //NSG Module
   module nsg 'Modules/Network/NSG/NSGCreation.bicep' = {
   name: 'nsg-module'
@@ -207,7 +244,7 @@ param sku object = {
    ] 
   }
 
-
+*/
 
 //=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
 
@@ -236,7 +273,7 @@ module law 'analytics_workspace.bicep' = {
 
 */
 
-//=======Start of Backup Modules=======//      //Commented out to isolate testing to networking
+//=======Start of Backup Modules=======//      
 
 /*
 module backup 'BackUp/backup_policies.bicep' = {

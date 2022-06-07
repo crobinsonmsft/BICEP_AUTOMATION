@@ -82,7 +82,7 @@ param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for
 param subnet_hub_gw_name string = 'GatewaySubnet'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_hub_fw_name string = 'AzureFirewallSubnet'                       //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
 param subnet_hub_bas_name string = 'AzureBastionSubnet'                   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-param subnet_ss_name string = 'Shared Services'                   //Name for Shared Services Subnet - Would host AD, DNS, etc.
+param subnet_ss_name string = 'SharedServicesSubnet'                   //Name for Shared Services Subnet - Would host AD, DNS, etc.
 
 param subnet_hub_gw_adress_space string = '10.0.0.0/24'           //Subnet address space for Gateway Subnet
 param subnet_hub_fw_address_space string = '10.0.1.0/24'          //Subnet address space for Azure Firewall Subnet

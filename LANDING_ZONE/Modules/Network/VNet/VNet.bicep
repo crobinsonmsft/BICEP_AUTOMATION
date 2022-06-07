@@ -148,28 +148,6 @@ resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
         }
       }
     ]
-    /*
-    virtualNetworkPeerings: [
-      {
-        name: ''
-        properties: {
-          peeringState: 'Connected'
-          remoteVirtualNetwork: {
-            id: vnet_hub_id
-          }
-          allowVirtualNetworkAccess: true
-          allowForwardedTraffic: true
-          allowGatewayTransit: false
-          useRemoteGateways: true
-          remoteAddressSpace: {
-            addressPrefixes: [
-              peering_prefix_hub
-            ]
-          }
-        }
-      }
-    ]
-    */
     enableDdosProtection: false
   }
 }

@@ -63,13 +63,6 @@ param nsg_private_name string = 'NSG-PRIVATE-${env_prefix}-001'
 param nsg_public_name string = 'NSG-PUBLIC-${env_prefix}-001'
 
 
-//==Route Table Parameters==//
-/*
-param route_table_name string = '${subscriptionPrefix}rtbl-default-01'    //Set Route Table Name here
-param bgp_disable bool = true                                             //Disable BGP route propogation?
-param bgp_override bool = false
-param nextHopType string = 'VirtualAppliance'
-*/
 //=====VNET Parameters=====//
 
 //HUB VNET Parameters
@@ -91,47 +84,6 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
             
 
 
-/*
-param peering_prefix_hub string = '10.204.0.0/22'                 //Address space for Peering Connections between spoke vnet and hub
-param peering_prefix_hub_underscore string = replace(peering_prefix_hub, '/', '_')        //Same as peering prefix except that it includes an Azure name friendly underscore
-*/
-
-//==========================================//
-//=====Monitoring and Alerting Parameters===//
-
-//==Action Group Parameters==//
-
-/*
-param emailAddress array = [
-  'EOTSS-DL-AzureCloudOpsSupport@mass.gov'        //The distribution group that will receive SMTP alert notifications
-]
-param sms array = [
-  '9002022020'
-  '8001232345'
-]
-*/
-
-//=Log Analytics Workspace Parameters=//
-
-
-
-//===========================================//
-//==============Backup Parameters============//
-/*
-param vaultName string = 'TEST-VAULT2'      //Name of the Recovery Services Vault
-@allowed([
-  'GeoRedundant' 
-  'LocallyRedundant'
-  'ReadAccessGeoZoneRedundant'
-  'ZoneRedundant'
-])
-param BackupType string = 'LocallyRedundant'
-param policyName string = 'TSS-VM-DefaultBackup'
-param sku object = {
-  name: 'RS0'
-  tier: 'Standard'
-}
-*/
 //=========================================================================================//
 //================================== START OF MODULES =====================================//
 //=========================================================================================//
@@ -169,26 +121,6 @@ param sku object = {
   }
 
   
-/*
-  //Route Table Module
-  module route_table 'Modules/Network/Route_Tables/route_table.bicep' = {
-    name: 'route_table-module'
-      params: {
-        tags: tags
-        location: location
-        route_table_name: route_table_name
-        bgp_disable: bgp_disable
-        bgp_override: bgp_override
-        nextHopType: nextHopType
-        peering_prefix_hub: peering_prefix_hub
-        peering_prefix_hub_underscore: peering_prefix_hub_underscore
-        subscriptionPrefix : subscriptionPrefix
-        vnet_address_space : vnet_address_space
-        vnet_address_space_underscore : vnet_address_space_underscore
-      }
-  }
-*/
-
   //VNET Module
   module vnet 'Modules/Network/VNet/VNet.bicep' = {
     name: 'vnet-module'
@@ -216,65 +148,3 @@ param sku object = {
       //route_table
     ]
   }
-
-
-/*
-  //Peering Module
-  module peering 'Modules/Network/Peerings/peering.bicep' = {
-    name: 'peering_module'
-      params: {
-        name: '${vnet_name}/${vnet_name}-to-tss-hub-vnt-${peering_prefix_hub_underscore}'
-        peering_prefix_hub : peering_prefix_hub
-        vnet_hub_id: vnet_hub_id
-
-
-      }
-   dependsOn: [
-     vnet
-   ] 
-  }
-
-*/
-
-//=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
-
-/*
-
-module action_group 'Monitoring/action_group.bicep' = {
-  name: 'action_group-module'
-  params: {
-    tags: tags
-    location: location
-    emailAddress: emailAddress
-    sms: sms
-  }
-}
-
-module law 'analytics_workspace.bicep' = {
-  name: 'law-module'
-  params: {
-    tags: tags
-    location: location
-  }
-  dependsOn: [
-      action_group
-    ]
-}
-
-*/
-
-//=======Start of Backup Modules=======//      
-
-/*
-module backup 'BackUp/backup_policies.bicep' = {
-  name: 'backup-module'
-  params: {
-    tags: tags
-    location: location
-    vaultName: vaultName
-    BackupType: BackupType
-    policyName: policyName
-    sku: sku
-  }
-}
-*/

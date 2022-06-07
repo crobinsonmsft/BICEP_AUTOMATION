@@ -1,8 +1,14 @@
+// This Module Creates all Resource Groups throughout the deployment
+
+//=================Params=================//
+param tags object
 param location string
+
 param rg_01_name string
 param rg_02_name string
 param rg_03_name string
-param tags object
+//===============End Params===============//
+
 
 targetScope = 'subscription'
 
@@ -25,3 +31,9 @@ resource rg_03 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   location: location
   tags:tags
 }
+
+/*
+output rg_01_id string = rg_01.id
+output rg_02_id string = rg_02.id
+output rg_03_id string = rg_03.id
+*/

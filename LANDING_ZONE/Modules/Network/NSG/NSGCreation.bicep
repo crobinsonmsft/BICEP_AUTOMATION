@@ -1,25 +1,21 @@
 //=======This bicep file creates all Network Security Groups (NSGs)=======//
 
-
 //=================Params=================//
+param tags object
+param location string
 
-param networkSecurityGroups_bastion_nsg_name string = ''
-param networkSecurityGroups_db_nsg_name string = ''
-param networkSecurityGroups_public_nsg_name string = ''
-param networkSecurityGroups_private_nsg_name string = ''
-
-param tags object = {}
-param location string = ''
+param networkSecurityGroups_bastion_nsg_name string
+param networkSecurityGroups_public_nsg_name string
+param networkSecurityGroups_private_nsg_name string
 
 //===============End Params===============//
-
 
 //======== Start Resource Creation =======//
 //Bastion
 resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
   name: networkSecurityGroups_bastion_nsg_name
   location: location
-  tags: tags 
+  tags: tags
   properties: {
     securityRules: [
       {
@@ -100,72 +96,6 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
   }
 }
 
-//DB
-resource networkSecurityGroups_db_nsg_name_resource 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
-  name: networkSecurityGroups_db_nsg_name
-  location: location
-  tags: tags 
-  properties: {
-    securityRules: [
-      {
-        name: 'AllowGatewayManagerInbound'
-        properties: {
-          description: 'Allow inbound access from Azure GatewayManager on port 443 for control plane connectivity'
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: 'GatewayManager'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 120
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowSshRdpOutbound'
-        properties: {
-          description: 'Allow egress traffic to target VMs over private IP'
-          protocol: '*'
-          sourcePortRange: '*'
-          sourceAddressPrefix: '*'
-          destinationAddressPrefix: 'VirtualNetwork'
-          access: 'Allow'
-          priority: 110
-          direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '22'
-            '3389'
-          ]
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowAzureCloudOutbound'
-        properties: {
-          description: 'Allow egress traffic to public endpoints within Azure'
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: '*'
-          destinationAddressPrefix: 'AzureCloud'
-          access: 'Allow'
-          priority: 120
-          direction: 'Outbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-    ]
-  }
-}
 
 //Public
 resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
@@ -324,6 +254,5 @@ resource networkSecurityGroups_private_nsg_name_resource 'Microsoft.Network/netw
 //Begin ID Outputs to be sent to VNET creation bicep module
 
 output bastion_nsg_id string = networkSecurityGroups_bastion_nsg_name_resource.id
-output db_nsg_id string = networkSecurityGroups_db_nsg_name_resource.id
 output public_nsg_id string = networkSecurityGroups_public_nsg_name_resource.id
 output private_nsg_id string = networkSecurityGroups_private_nsg_name_resource.id

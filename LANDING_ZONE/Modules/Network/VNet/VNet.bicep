@@ -11,60 +11,49 @@ param location string
 //nsg params
 
 param bastion_nsg_id string
-param public_nsg_id string
+//param public_nsg_id string
 param private_nsg_id string
-param db_nsg_id string
-
-
-//route table params
-
-param route_table_public_id string
 
 
 //vnet params
-param vnet_name string
-param vnet_hub_id string
 
-param vnet_address_space string
+param vnet_hub_name string
+param vnet_hub_address_space string
 
-param subnet_db_prefix string
-param subnet_gw_prefix string
-param subnet_fw_prefix string
-param subnet_bastion_prefix string
-param subnet_pub_prefix string
-param subnet_priv_prefix string
+//HUB Subnet Parameters
+param subnet_hub_gw_name string
+param subnet_hub_fw_name string
+param subnet_hub_bas_name string
+param subnet_ss_name string
 
-param subnet_db_name string
-param subnet_gw_name string
-param subnet_fw_name string
-param subnet_bastion_name string
-param subnet_pub_name string
-param subnet_priv_name string
+param subnet_hub_gw_adress_space string
+param subnet_hub_fw_address_space string
+param subnet_hub_bas_address_space string
+param subnet_hub_ss_address_space string
+            
 
-param peering_prefix_hub string
-param peering_prefix_hub_underscore string
 
 //===============End Params===============//
 
 //======== Start Resource Creation =======//
 
-resource virtualNetworks_hhs_aapaas_vnt_10_204_80_0_22_name_resource 'Microsoft.Network/virtualNetworks@2020-11-01' = {
-  name: vnet_name
+resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
+  name: vnet_hub_name
   location: location
   tags: tags
   properties: {
     addressSpace: {
       addressPrefixes: [
-        vnet_address_space
+        vnet_hub_address_space
       ]
     }
     subnets: [
       {
-        name: subnet_db_name
+        name: subnet_hub_gw_name
         properties: {
-          addressPrefix: subnet_db_prefix
+          addressPrefix: subnet_hub_gw_adress_space
           networkSecurityGroup: {
-            id: db_nsg_id
+            id: private_nsg_id
           }
           serviceEndpoints: [
             {
@@ -99,27 +88,18 @@ resource virtualNetworks_hhs_aapaas_vnt_10_204_80_0_22_name_resource 'Microsoft.
         }
       }
       {
-        name: subnet_gw_name
+        name: subnet_hub_fw_name
         properties: {
-          addressPrefix: subnet_gw_prefix
+          addressPrefix: subnet_hub_fw_address_space
           delegations: []
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
       {
-        name: subnet_fw_name
+        name: subnet_hub_bas_name
         properties: {
-          addressPrefix: subnet_fw_prefix
-          delegations: []
-          privateEndpointNetworkPolicies: 'Enabled'
-          privateLinkServiceNetworkPolicies: 'Enabled'
-        }
-      }
-      {
-        name: subnet_bastion_name
-        properties: {
-          addressPrefix: subnet_bastion_prefix
+          addressPrefix: subnet_hub_bas_address_space
           networkSecurityGroup: {
             id: bastion_nsg_id
           }
@@ -129,53 +109,11 @@ resource virtualNetworks_hhs_aapaas_vnt_10_204_80_0_22_name_resource 'Microsoft.
         }
       }
       {
-        name: subnet_pub_name
+        name: subnet_ss_name
         properties: {
-          addressPrefix: subnet_pub_prefix
-          networkSecurityGroup: {
-            id: public_nsg_id
-          }
-          serviceEndpoints: [
-            {
-              service: 'Microsoft.Storage'
-              locations: [
-                'eastus2'
-                'centralus'
-              ]
-            }
-            {
-              service: 'Microsoft.KeyVault'
-              locations: [
-                '*'
-              ]
-            }
-            {
-              service: 'Microsoft.EventHub'
-              locations: [
-                '*'
-              ]
-            }
-            {
-              service: 'Microsoft.Sql'
-              locations: [
-                'eastus2'
-              ]
-            }
-          ]
-          delegations: []
-          privateEndpointNetworkPolicies: 'Enabled'
-          privateLinkServiceNetworkPolicies: 'Enabled'
-        }
-      }
-      {
-        name: subnet_priv_name
-        properties: {
-          addressPrefix: subnet_priv_prefix
+          addressPrefix: subnet_hub_ss_address_space
           networkSecurityGroup: {
             id: private_nsg_id
-          }
-          routeTable: {
-            id: route_table_public_id
           }
           serviceEndpoints: [
             {
@@ -213,7 +151,7 @@ resource virtualNetworks_hhs_aapaas_vnt_10_204_80_0_22_name_resource 'Microsoft.
     /*
     virtualNetworkPeerings: [
       {
-        name: '${vnet_name}-to-tss-hub-vnt-${peering_prefix_hub_underscore}'
+        name: ''
         properties: {
           peeringState: 'Connected'
           remoteVirtualNetwork: {

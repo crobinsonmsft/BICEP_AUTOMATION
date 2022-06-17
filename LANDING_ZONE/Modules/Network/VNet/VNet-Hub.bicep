@@ -151,3 +151,8 @@ resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
     enableDdosProtection: false
   }
 }
+
+
+//Set ID Output here to be used by other modules
+
+output vnet_hub_id string = vnet_hub.id

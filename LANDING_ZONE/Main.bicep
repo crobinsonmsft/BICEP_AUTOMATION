@@ -67,9 +67,8 @@ param nsg_public_name string = 'NSG-PUBLIC-${env_prefix}-001'
 
 //HUB VNET Parameters
 param vnet_hub_name string = 'VNET-HUB-${env_prefix}-001'   //Desired name of the vnet
-//param vnet_hub_id string = '/subscriptions/13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c/resourceGroups/tss-hub-rsg-network-01/providers/Microsoft.Network/virtualNetworks/tss-hub-vnt-10.204.0.0_22'
 param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
-//param vnet_hub_address_space_underscore string = replace(vnet_hub_address_space, '/', '_')        //Same as hub address space except that it includes an Azure name friendly underscore
+
 
 //HUB Subnet Parameters
 param subnet_hub_gw_name string = 'GatewaySubnet'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
@@ -101,10 +100,11 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
       }
     }
 
+//======End of Resource Group Modules====//
+
 //=======Start of Network Modules=======//
 
-
-  //NSG Module
+  //NSG Module    // Creates all NSGs throughout deployment
   module nsg 'Modules/Network/NSG/NSGCreation.bicep' = {
   name: 'nsg-module'
   scope: resourceGroup(rg_01_name)
@@ -121,10 +121,10 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
   }
 
   
-  //VNET Module
-  module vnet 'Modules/Network/VNet/VNet.bicep' = {
+  //VNET HUB Module
+  module vnet 'Modules/Network/VNet/VNet-Hub.bicep' = {
     name: 'vnet-module'
-    scope: resourceGroup(rg_01_name)      
+    scope: resourceGroup(rg_01_name)
     params: {
       tags: tags
       location: location
@@ -148,3 +148,7 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
       //route_table
     ]
   }
+
+  //=========End of Network Modules=======//
+
+  //=======Start of Backup Modules=======//

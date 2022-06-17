@@ -56,6 +56,6 @@ resource routeTable 'Microsoft.Network/routeTables@2021-05-01' = {
 }
 
 
-//Set ID Output here
+//Set ID Output here to be used by other modules
 
 output route_table_id string = routeTable.id

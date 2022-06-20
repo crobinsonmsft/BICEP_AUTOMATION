@@ -66,7 +66,7 @@ param nsg_public_name string = 'NSG-PUBLIC-${env_prefix}-001'
 //=====VNET Parameters=====//
 
 //HUB VNET Parameters
-param vnet_hub_name string = 'VNET-HUB-${env_prefix}-001'   //Desired name of the vnet
+param vnet_hub_name string = 'VNET-HUB-${env_prefix}'   //Desired name of the vnet
 param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
 
@@ -74,13 +74,42 @@ param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for
 param subnet_hub_gw_name string = 'GatewaySubnet'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_hub_fw_name string = 'AzureFirewallSubnet'                       //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
 param subnet_hub_bas_name string = 'AzureBastionSubnet'                   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-param subnet_ss_name string = 'SharedServicesSubnet'                   //Name for Shared Services Subnet - Would host AD, DNS, etc.
+param subnet_hub_ss_name string = 'SharedServicesSubnet'                   //Name for Shared Services Subnet - Would host AD, DNS, etc.
 
 param subnet_hub_gw_adress_space string = '10.0.0.0/24'           //Subnet address space for Gateway Subnet
 param subnet_hub_fw_address_space string = '10.0.1.0/24'          //Subnet address space for Azure Firewall Subnet
 param subnet_hub_bas_address_space string = '10.0.2.0/24'         //Subnet address space for Bastion Subnet
 param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet address space for Public Subnet
-            
+
+//SPOKE 001 VNET Parameters
+param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix}-001'   //Desired name of the vnet
+param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
+
+//SPOKE 001 Subnet Parameters
+param subnet_spoke_001_name string = 'WEB-VMs-${env_prefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
+
+
+//=====Backup and Recovery Parameters=====//
+
+//Recovery Services Vault Parameters
+param vaultName string = 'RSV-${env_prefix}-001'                //Name of the Recovery Services Vault
+param sku object = {
+  name: 'RS0'
+  tier: 'Standard'
+}
+
+//Backup Parameters
+@allowed([
+  'GeoRedundant' 
+  'LocallyRedundant'
+  'ReadAccessGeoZoneRedundant'
+  'ZoneRedundant'
+])
+param BackupType string = 'LocallyRedundant'
+param policyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
+
+
 
 
 //=========================================================================================//
@@ -122,8 +151,8 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
 
   
   //VNET HUB Module
-  module vnet 'Modules/Network/VNet/VNet-Hub.bicep' = {
-    name: 'vnet-module'
+  module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {
+    name: 'vnet-hub-module'
     scope: resourceGroup(rg_01_name)
     params: {
       tags: tags
@@ -136,7 +165,7 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
       subnet_hub_gw_name : subnet_hub_gw_name
       subnet_hub_fw_name : subnet_hub_fw_name
       subnet_hub_bas_name : subnet_hub_bas_name
-      subnet_ss_name : subnet_ss_name
+      subnet_ss_name : subnet_hub_ss_name
       subnet_hub_gw_adress_space : subnet_hub_gw_adress_space
       subnet_hub_fw_address_space : subnet_hub_fw_address_space
       subnet_hub_bas_address_space : subnet_hub_bas_address_space
@@ -149,6 +178,60 @@ param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet addr
     ]
   }
 
+  //VNET Spoke 001 Module
+  module vnet_spoke_001 'Modules/Network/VNet/VNet-Spoke-001.bicep' = {
+    name: 'vnet-spoke_001-module'
+    scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: location
+      private_nsg_id: nsg.outputs.private_nsg_id
+      vnet_spoke_001_name: vnet_spoke_001_name
+      vnet_spoke_001_address_space : vnet_spoke_001_address_space
+      subnet_spoke_001_name : subnet_spoke_001_name
+      subnet_spoke_001_address_space : subnet_spoke_001_address_space
+    }
+    dependsOn: [
+      rg
+      nsg
+      vnet_hub
+      //route_table
+    ]
+  }
+
   //=========End of Network Modules=======//
 
-  //=======Start of Backup Modules=======//
+
+  //=======Start of Backup and Recovery Modules=======//
+
+  module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
+    name: 'rsv-module'
+    scope: resourceGroup(rg_02_name)
+    params: {
+      tags: tags
+      location: location
+      vaultName: vaultName
+      sku: sku
+    }
+    dependsOn: [
+      rg
+    ]
+  }
+
+module backup 'Modules/BackUp/backup_policies.bicep' = {
+  name: 'backup-policies-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    vaultName: vaultName
+    location: location
+    tags: tags
+    BackupType: BackupType
+    policyName: policyName
+    env_prefix: env_prefix
+  }
+  dependsOn: [
+    rsv_001
+  ]
+}
+
+  //=======End  of Backup and Recovery Modules=======//

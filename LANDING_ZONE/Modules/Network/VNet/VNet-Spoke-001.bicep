@@ -17,7 +17,7 @@ param vnet_spoke_001_address_space string
 
 //Spoke 001 Subnet Parameters
 param subnet_spoke_001_name string
-param subnet_spoke_001_adress_space string
+param subnet_spoke_001_address_space string
 
 
 //===============End Params===============//
@@ -38,7 +38,7 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
       {
         name: subnet_spoke_001_name
         properties: {
-          addressPrefix: subnet_spoke_001_adress_space
+          addressPrefix: subnet_spoke_001_address_space
           networkSecurityGroup: {
             id: private_nsg_id
           }

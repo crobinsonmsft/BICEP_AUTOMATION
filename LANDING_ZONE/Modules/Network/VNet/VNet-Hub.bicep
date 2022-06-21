@@ -52,9 +52,11 @@ resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
         name: subnet_hub_gw_name
         properties: {
           addressPrefix: subnet_hub_gw_adress_space
+          /*
           networkSecurityGroup: {
             id: private_nsg_id
           }
+          */
           serviceEndpoints: [
             {
               service: 'Microsoft.Storage'

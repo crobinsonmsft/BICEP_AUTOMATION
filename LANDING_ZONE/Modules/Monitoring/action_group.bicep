@@ -50,3 +50,5 @@ resource actionGroups_Admins_name_resource 'microsoft.insights/actionGroups@2021
     armRoleReceivers: []
   }
 }
+
+output actionGroups_Admins_name_resource_id string = actionGroups_Admins_name_resource.id

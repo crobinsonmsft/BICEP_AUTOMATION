@@ -69,7 +69,6 @@ param nsg_public_name string = 'NSG-PUBLIC-${env_prefix}-001'
 param vnet_hub_name string = 'VNET-HUB-${env_prefix}'   //Desired name of the vnet
 param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
-
 //HUB Subnet Parameters
 param subnet_hub_gw_name string = 'GatewaySubnet'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_hub_fw_name string = 'AzureFirewallSubnet'                       //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
@@ -107,9 +106,7 @@ param sku object = {
   'ZoneRedundant'
 ])
 param BackupType string = 'LocallyRedundant'
-param policyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
-
-
+param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
 
 
 //=========================================================================================//
@@ -226,7 +223,7 @@ module backup 'Modules/BackUp/backup_policies.bicep' = {
     location: location
     tags: tags
     BackupType: BackupType
-    policyName: policyName
+    backupPolicyName: backupPolicyName
     env_prefix: env_prefix
   }
   dependsOn: [

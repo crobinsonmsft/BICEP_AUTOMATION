@@ -8,16 +8,15 @@ param vaultName string
 param location string
 param tags object
 param BackupType string
-param policyName string
+param backupPolicyName string
 param env_prefix string
 
 
 // Create the customized recovery service vault backup policy for Azure virtual machines
 resource backup_pol_001 'Microsoft.RecoveryServices/vaults/backupPolicies@2022-01-01'= {
-  //parent: vaults_tss_np_rsv_infra_01_name_resource
   
-  //name: '${RecoveryServicesVault.name}/${policyName}'
-  name: '${vaultName}/${policyName}'
+  //name: '${RecoveryServicesVault.name}/${backupPolicyName}'
+  name: '${vaultName}/${backupPolicyName}'
   location: location
   tags: tags
   properties: {

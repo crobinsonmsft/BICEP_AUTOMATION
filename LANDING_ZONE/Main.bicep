@@ -18,7 +18,11 @@ targetScope = 'subscription'                      // We will deploy these module
   'Sandbox'
 ])
 @description('Select the environment classification we will deploy to')
-param env string = 'Production'                     // Set preferred environment here
+param env array = [
+  'Production'
+  'Development'
+  'Sandbox'
+]
 
 @allowed([
   'PRD'
@@ -88,6 +92,13 @@ param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address spa
 param subnet_spoke_001_name string = 'WEB-VMs-${env_prefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
+//Peering Parameters
+param peering_name string = '${vnet_spoke_001_name}-to-${vnet_hub_name}'
+param allowForwardedTraffic bool = true
+param allowGatewayTransit bool = false
+param allowVirtualNetworkAccess bool = true
+param doNotVerifyRemoteGateways bool = false
+param peeringState string = 'Connected'
 
 //=====Backup and Recovery Parameters=====//
 
@@ -196,6 +207,28 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
     ]
   }
 
+  //Peering Module
+  module peering_001 'Modules/Network/Peerings/peering.bicep' = {
+    name: 'peering_001-module'
+    scope: resourceGroup(rg_01_name)
+    params: {
+      allowForwardedTraffic: allowForwardedTraffic
+      allowGatewayTransit: allowGatewayTransit
+      allowVirtualNetworkAccess: allowVirtualNetworkAccess
+      doNotVerifyRemoteGateways:  doNotVerifyRemoteGateways
+      peeringState: peeringState
+      peering_name: peering_name
+      vnet_hub_id: vnet_hub.outputs.vnet_hub_id
+      peering_prefix_hub: vnet_hub_address_space
+    }
+    dependsOn: [
+      rg
+      nsg
+      vnet_hub
+      vnet_spoke_001
+      //route_table
+    ]
+  }
   //=========End of Network Modules=======//
 
 

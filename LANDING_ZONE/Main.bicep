@@ -12,17 +12,23 @@ targetScope = 'subscription'                      // We will deploy these module
 //===========================================//
 //==============Global Parameters============//
 
+
+/*
 @allowed([
   'Production'
   'Development'
   'Sandbox'
 ])
 @description('Select the environment classification we will deploy to')
-param env array = [
-  'Production'
-  'Development'
-  'Sandbox'
+param env_array array = [
+  'Production'  //0
+  'Development' //1
+  'Sandbox'     //2
 ]
+*/
+param env string = 'Production'  // 0 - Prod, 1 - Dev, 2 - Sandbox
+
+
 
 @allowed([
   'PRD'
@@ -30,7 +36,17 @@ param env array = [
   'SBX'
 ])
 @description('Select the environment classification abbreviation. Ensure this is consistent with the environment that was previously selected')
-param env_prefix string = 'PRD'
+param env_prefix_array array = [
+  'PRD'
+  'DEV'
+  'SBX'
+]
+
+
+//param env_prefix_01 int = indexOf(env_array, env)
+
+param env_prefix string = env_prefix_array[0]
+
 
 @allowed([
   'eastus'
@@ -39,7 +55,7 @@ param env_prefix string = 'PRD'
 ])
 @description('Select the Azure region to deploy to')
 //param location string = resourceGroup().location  //Will use the location of the resource group if resource group targeted. Comment this out if targeting subscription or mgt group
-param location string = 'eastus'                    // Location that resource will be deployed to
+param location string = 'eastus'                    // Location that resource will be deployed to.  This location param will drive the entire deployment
 
 param tags object = {                               // Edit tags accordingly
   Environment: env
@@ -93,18 +109,27 @@ param subnet_spoke_001_name string = 'WEB-VMs-${env_prefix}-001'                
 param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
 //Peering Parameters
-param peering_name string = '${vnet_spoke_001_name}-to-${vnet_hub_name}'
+param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
+param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
 param allowForwardedTraffic bool = true
 param allowGatewayTransit bool = false
 param allowVirtualNetworkAccess bool = true
 param doNotVerifyRemoteGateways bool = false
 param peeringState string = 'Connected'
+param useRemoteGateways bool = false    // would normally be true, but I have no gateway right now in the hub
+
+//Public IP Address Parameters
+param publicIPAddressName string = 'Bastion Public IP Address'
+param publicIPsku string = 'Basic'
+param publicIPAllocationMethod string = 'Dynamic'
+param publicIPAddressVersion string = 'IPv4'
+param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
 //=====Backup and Recovery Parameters=====//
 
 //Recovery Services Vault Parameters
 param vaultName string = 'RSV-${env_prefix}-001'                //Name of the Recovery Services Vault
-param sku object = {
+param vaultSku object = {
   name: 'RS0'
   tier: 'Standard'
 }
@@ -217,9 +242,12 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       allowVirtualNetworkAccess: allowVirtualNetworkAccess
       doNotVerifyRemoteGateways:  doNotVerifyRemoteGateways
       peeringState: peeringState
-      peering_name: peering_name
+      peering_name_hub_to_spoke_001 : peering_name_hub_to_spoke_001
+      peering_name_spoke_001_to_hub : peering_name_spoke_001_to_hub
       vnet_hub_id: vnet_hub.outputs.vnet_hub_id
+      vnet_spoke_001_id : vnet_spoke_001.outputs.vnet_spoke_001_id
       peering_prefix_hub: vnet_hub_address_space
+      useRemoteGateways: useRemoteGateways
     }
     dependsOn: [
       rg
@@ -229,6 +257,27 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       //route_table
     ]
   }
+
+  //Public IP Module    // Creates Public IP for Bastion
+  module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
+    name: 'public-ip-module'
+    scope: resourceGroup(rg_01_name)
+      params: {
+        tags: tags
+        location: location
+        publicIPAddressName: publicIPAddressName
+        publicIPsku: publicIPsku
+        publicIPAllocationMethod : publicIPAllocationMethod
+        publicIPAddressVersion : publicIPAddressVersion
+        dnsLabelPrefix : dnsLabelPrefix
+      }
+      dependsOn: [
+        rg
+      ]
+    }
+
+
+
   //=========End of Network Modules=======//
 
 
@@ -241,7 +290,7 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       tags: tags
       location: location
       vaultName: vaultName
-      sku: sku
+      sku: vaultSku
     }
     dependsOn: [
       rg

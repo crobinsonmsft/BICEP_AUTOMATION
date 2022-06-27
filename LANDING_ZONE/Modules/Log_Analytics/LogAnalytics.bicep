@@ -5,7 +5,7 @@ param location string
 @allowed([
   'PerGB2018'
 ])
-param sku string
+param vaultSku string
 
 // Log Analytics Workspace Declaration
 resource workspace_ 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
@@ -14,7 +14,7 @@ resource workspace_ 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
   tags: {}
   properties: {
     sku: {
-      name: sku
+      name: vaultSku
     }
   }
 }

@@ -13,7 +13,7 @@ targetScope = 'subscription'                      // We will deploy these module
 //==============Global Parameters============//
 
 
-/*
+
 @allowed([
   'Production'
   'Development'
@@ -25,10 +25,8 @@ param env_array array = [
   'Development' //1
   'Sandbox'     //2
 ]
-*/
-param env string = 'Production'  // 0 - Prod, 1 - Dev, 2 - Sandbox
 
-
+param env string = env_array[0]  // 0 - Prod, 1 - Dev, 2 - Sandbox
 
 @allowed([
   'PRD'
@@ -119,11 +117,14 @@ param peeringState string = 'Connected'
 param useRemoteGateways bool = false    // would normally be true, but I have no gateway right now in the hub
 
 //Public IP Address Parameters
-param publicIPAddressName string = 'Bastion Public IP Address'
-param publicIPsku string = 'Basic'
+param publicIPAddressName string = 'PUB-IP-${env_prefix}-BASTION'
+param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
 param publicIPAllocationMethod string = 'Dynamic'
 param publicIPAddressVersion string = 'IPv4'
 param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
+
+//Bastion Host Parameters
+param bastionName string = 'BASTION-${env_prefix}'
 
 //=====Backup and Recovery Parameters=====//
 
@@ -182,7 +183,6 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
     ]
   }
 
-  
   //VNET HUB Module
   module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {
     name: 'vnet-hub-module'
@@ -274,8 +274,26 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       dependsOn: [
         rg
       ]
-    }
+  }
 
+  //Bastion Host Module
+  module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
+    name: 'bastion-host-module'
+    scope: resourceGroup(rg_01_name)
+      params: {
+        tags: tags
+        location: location
+        bastionName: bastionName
+        publicipid: publicIP.outputs.public_ip_id
+        bastionSubnetid: '${vnet_hub.outputs.vnet_hub_id}/subnets/${subnet_hub_bas_name}'
+
+      }
+      dependsOn: [
+        rg
+        vnet_spoke_001
+        publicIP
+      ]
+  } 
 
 
   //=========End of Network Modules=======//

@@ -14,11 +14,7 @@ targetScope = 'subscription'                      // We will deploy these module
 
 
 
-@allowed([
-  'Production'
-  'Development'
-  'Sandbox'
-])
+
 @description('Select the environment classification we will deploy to')
 param env_array array = [
   'Production'  //0
@@ -26,8 +22,14 @@ param env_array array = [
   'Sandbox'     //2
 ]
 
+@allowed([
+  'Production'
+  'Development'
+  'Sandbox'
+])
 param env string = env_array[0]  // 0 - Prod, 1 - Dev, 2 - Sandbox
 
+//---------------------------------//
 @allowed([
   'PRD'
   'DEV'
@@ -39,11 +41,8 @@ param env_prefix_array array = [
   'DEV'
   'SBX'
 ]
-
-
-//param env_prefix_01 int = indexOf(env_array, env)
-
 param env_prefix string = env_prefix_array[0]
+
 
 
 @allowed([
@@ -119,12 +118,12 @@ param useRemoteGateways bool = false    // would normally be true, but I have no
 //Public IP Address Parameters
 param publicIPAddressName string = 'PUB-IP-${env_prefix}-BASTION'
 param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
-param publicIPAllocationMethod string = 'Dynamic'
+param publicIPAllocationMethod string = 'Static' //Should be Static for Bastion Usage
 param publicIPAddressVersion string = 'IPv4'
 param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
 //Bastion Host Parameters
-param bastionName string = 'BASTION-${env_prefix}'
+param bastionName string = 'BASTION-${env_prefix}-001'
 
 //=====Backup and Recovery Parameters=====//
 
@@ -161,7 +160,7 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
         rg_02_name: rg_02_name
         rg_03_name: rg_03_name
       }
-    }
+  }
 
 //======End of Resource Group Modules====//
 
@@ -295,11 +294,11 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       ]
   } 
 
-
   //=========End of Network Modules=======//
 
 
   //=======Start of Backup and Recovery Modules=======//
+
 
   module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
     name: 'rsv-module'
@@ -315,20 +314,20 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
     ]
   }
 
-module backup 'Modules/BackUp/backup_policies.bicep' = {
-  name: 'backup-policies-module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    vaultName: vaultName
-    location: location
-    tags: tags
-    BackupType: BackupType
-    backupPolicyName: backupPolicyName
-    env_prefix: env_prefix
+  module backup 'Modules/BackUp/backup_policies.bicep' = {
+    name: 'backup-policies-module'
+    scope: resourceGroup(rg_02_name)
+    params: {
+      vaultName: vaultName
+      location: location
+      tags: tags
+      BackupType: BackupType
+      backupPolicyName: backupPolicyName
+      env_prefix: env_prefix
+    }
+    dependsOn: [
+      rsv_001
+    ]
   }
-  dependsOn: [
-    rsv_001
-  ]
-}
 
   //=======End  of Backup and Recovery Modules=======//

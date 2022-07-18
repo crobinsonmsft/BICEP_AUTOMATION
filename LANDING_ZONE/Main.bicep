@@ -29,6 +29,7 @@ param env_array array = [
 ])
 param env string = env_array[0]  // 0 - Prod, 1 - Dev, 2 - Sandbox
 
+
 //---------------------------------//
 @allowed([
   'PRD'
@@ -43,6 +44,7 @@ param env_prefix_array array = [
 ]
 param env_prefix string = env_prefix_array[0]
 
+var somestuff = env == 'Production' ? env_prefix_array:env_prefix_array[0]
 
 
 @allowed([
@@ -70,8 +72,8 @@ param rg_01_name string = 'RG-CONNECTIVITY-${env_prefix}-001'
 param rg_02_name string = 'RG-MANAGEMENT-${env_prefix}-001'
 param rg_03_name string = 'RG-RESOURCE-${env_prefix}-001'
 
-//===========================================//
-//==========Networking Parameters============//
+//=================================================//
+//================Networking Parameters============//
 
 //======NSG Parameters======//
 //Define your NSG names here
@@ -125,7 +127,8 @@ param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP
 //Bastion Host Parameters
 param bastionName string = 'BASTION-${env_prefix}-001'
 
-//=====Backup and Recovery Parameters=====//
+//====================================================//
+//==========Backup and Recovery Parameters============//
 
 //Recovery Services Vault Parameters
 param vaultName string = 'RSV-${env_prefix}-001'                //Name of the Recovery Services Vault
@@ -143,6 +146,9 @@ param vaultSku object = {
 ])
 param BackupType string = 'LocallyRedundant'
 param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
+
+//========================================================//
+//==============Compute and Storage Parameters============//
 
 
 //=========================================================================================//
@@ -204,7 +210,6 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       subnet_hub_ss_address_space : subnet_hub_ss_address_space
     }
     dependsOn: [
-      rg
       nsg
       //route_table
     ]
@@ -224,8 +229,6 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       subnet_spoke_001_address_space : subnet_spoke_001_address_space
     }
     dependsOn: [
-      rg
-      nsg
       vnet_hub
       //route_table
     ]
@@ -249,8 +252,6 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       useRemoteGateways: useRemoteGateways
     }
     dependsOn: [
-      rg
-      nsg
       vnet_hub
       vnet_spoke_001
       //route_table
@@ -288,7 +289,6 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
 
       }
       dependsOn: [
-        rg
         vnet_spoke_001
         publicIP
       ]
@@ -331,3 +331,138 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
   }
 
   //=======End  of Backup and Recovery Modules=======//
+
+  //=======Start of Compute Modules=======//
+
+  module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
+    name: 'vm_001-module'
+    scope: resourceGroup(rg_03_name)
+    
+    params: {
+      adminUsername: adminUsername
+      adminPassword: adminPassword
+      vmName: vmName
+      storageAccountName: storageAccountName
+      OSVersion: OSVersion
+      vmSize: vmSize
+      nicName: nicName
+      tags: tags
+      location: location
+      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+    }
+    dependsOn: [
+      vnet_spoke_001
+    ]
+  }
+
+@description('Username for the Virtual Machine.')
+param adminUsername string = 'azureadmin'
+
+@description('Password for the Virtual Machine.')
+@minLength(12)
+@secure()
+param adminPassword string
+
+@description('Name of the virtual machine.')
+param vmName string = 'vm-001'
+
+/*
+@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
+param dnsLabelPrefixvm string = toLower('${vmName}-${uniqueString(rg_03_name, vmName)}')
+*/
+
+/*
+@description('Name for the Public IP used to access the Virtual Machine.')
+param publicIpName string = 'myPublicIP'
+
+@description('Allocation method for the Public IP used to access the Virtual Machine.')
+@allowed([
+  'Dynamic'
+  'Static'
+])
+param publicIPAllocationMethod string = 'Dynamic'
+
+@description('SKU for the Public IP used to access the Virtual Machine.')
+@allowed([
+  'Basic'
+  'Standard'
+])
+param publicIpSku string = 'Basic'
+*/
+
+@description('The Windows version for the VM. This will pick a fully patched image of this given Windows version.')
+@allowed([
+'2008-R2-SP1'
+'2008-R2-SP1-smalldisk'
+'2012-Datacenter'
+'2012-datacenter-gensecond'
+'2012-Datacenter-smalldisk'
+'2012-datacenter-smalldisk-g2'
+'2012-Datacenter-zhcn'
+'2012-datacenter-zhcn-g2'
+'2012-R2-Datacenter'
+'2012-r2-datacenter-gensecond'
+'2012-R2-Datacenter-smalldisk'
+'2012-r2-datacenter-smalldisk-g2'
+'2012-R2-Datacenter-zhcn'
+'2012-r2-datacenter-zhcn-g2'
+'2016-Datacenter'
+'2016-datacenter-gensecond'
+'2016-datacenter-gs'
+'2016-Datacenter-Server-Core'
+'2016-datacenter-server-core-g2'
+'2016-Datacenter-Server-Core-smalldisk'
+'2016-datacenter-server-core-smalldisk-g2'
+'2016-Datacenter-smalldisk'
+'2016-datacenter-smalldisk-g2'
+'2016-Datacenter-with-Containers'
+'2016-datacenter-with-containers-g2'
+'2016-datacenter-with-containers-gs'
+'2016-Datacenter-zhcn'
+'2016-datacenter-zhcn-g2'
+'2019-Datacenter'
+'2019-Datacenter-Core'
+'2019-datacenter-core-g2'
+'2019-Datacenter-Core-smalldisk'
+'2019-datacenter-core-smalldisk-g2'
+'2019-Datacenter-Core-with-Containers'
+'2019-datacenter-core-with-containers-g2'
+'2019-Datacenter-Core-with-Containers-smalldisk'
+'2019-datacenter-core-with-containers-smalldisk-g2'
+'2019-datacenter-gensecond'
+'2019-datacenter-gs'
+'2019-Datacenter-smalldisk'
+'2019-datacenter-smalldisk-g2'
+'2019-Datacenter-with-Containers'
+'2019-datacenter-with-containers-g2'
+'2019-datacenter-with-containers-gs'
+'2019-Datacenter-with-Containers-smalldisk'
+'2019-datacenter-with-containers-smalldisk-g2'
+'2019-Datacenter-zhcn'
+'2019-datacenter-zhcn-g2'
+'2022-datacenter'
+'2022-datacenter-azure-edition'
+'2022-datacenter-azure-edition-core'
+'2022-datacenter-azure-edition-core-smalldisk'
+'2022-datacenter-azure-edition-smalldisk'
+'2022-datacenter-core'
+'2022-datacenter-core-g2'
+'2022-datacenter-core-smalldisk'
+'2022-datacenter-core-smalldisk-g2'
+'2022-datacenter-g2'
+'2022-datacenter-smalldisk'
+'2022-datacenter-smalldisk-g2'
+])
+param OSVersion string = '2022-datacenter-azure-edition-core'
+
+//azureprice.net - reference for full list and costs
+@description('Size of the virtual machine.')
+param vmSize string = 'Standard_B2s'
+
+param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
+param nicName string = '${vmName}-nic'
+//var addressPrefix = '10.0.0.0/16'
+//var subnetName = subnet_spoke_001_name
+//var subnetPrefix = '10.0.0.0/24'
+//var virtualNetworkName = vnet_spoke_001_name
+//var networkSecurityGroupName = nsg_public_name

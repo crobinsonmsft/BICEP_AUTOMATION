@@ -32,8 +32,8 @@ resource rg_03 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags:tags
 }
 
-/*
+
 output rg_01_id string = rg_01.id
 output rg_02_id string = rg_02.id
 output rg_03_id string = rg_03.id
-*/
+

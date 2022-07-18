@@ -85,3 +85,6 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
 //Set ID Output here to be used by other modules
 
 output vnet_spoke_001_id string = vnet_spoke_001.id
+//output subnet_spoke_001_id string =  vnet_spoke_001.properties.subnets[0].id
+output subnet_spoke_001_id string =  '${vnet_spoke_001.id}/subnets/${subnet_spoke_001_name}'
+

@@ -299,7 +299,7 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
 
   //=======Start of Backup and Recovery Modules=======//
 
-
+/*
   module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
     name: 'rsv-module'
     scope: resourceGroup(rg_02_name)
@@ -329,6 +329,7 @@ param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
       rsv_001
     ]
   }
+  */
 
   //=======End  of Backup and Recovery Modules=======//
 
@@ -453,7 +454,7 @@ param publicIpSku string = 'Basic'
 '2022-datacenter-smalldisk'
 '2022-datacenter-smalldisk-g2'
 ])
-param OSVersion string = '2022-datacenter-azure-edition-core'
+param OSVersion string = '2022-datacenter'
 
 //azureprice.net - reference for full list and costs
 @description('Size of the virtual machine.')

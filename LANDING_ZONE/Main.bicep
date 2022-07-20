@@ -13,36 +13,29 @@ targetScope = 'subscription'                      // We will deploy these module
 //==============Global Parameters============//
 
 
-@description('Select the environment classification we will deploy to')
-param env_array array = [
-  'Production'  //0
-  'Development' //1
-  'Sandbox'     //2
-]
-
 @allowed([
   'Production'
   'Development'
   'Sandbox'
 ])
-param env string = env_array[0]  // 0 - Prod, 1 - Dev, 2 - Sandbox
-
+@description('Defines the environment classification our deployment will be based on')
+param env string = 'Sandbox'  // Set this value
 
 //---------------------------------//
-@allowed([
-  'PRD'
-  'DEV'
-  'SBX'
-])
-@description('Select the environment classification abbreviation. Ensure this is consistent with the environment that was previously selected')
-param env_prefix_array array = [
-  'PRD'
-  'DEV'
-  'SBX'
-]
-param env_prefix string = env_prefix_array[0]
 
-var somestuff = env == 'Production' ? env_prefix_array:env_prefix_array[0]
+
+var env_prefix = {
+  Production: {
+    envPrefix : 'PRD'
+  }
+  Development: {
+    envPrefix: 'DEV'
+  }
+  Sandbox: {
+    envPrefix: 'SBX'
+  }
+}
+
 
 
 @allowed([
@@ -66,24 +59,24 @@ param tags object = {                               // Edit tags accordingly
 //=======Resource Group Parameters=====//
 
 //Define your resource group names here
-param rg_01_name string = 'RG-CONNECTIVITY-${env_prefix}-001'
-param rg_02_name string = 'RG-MANAGEMENT-${env_prefix}-001'
-param rg_03_name string = 'RG-RESOURCE-${env_prefix}-001'
+var rg_01_name = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
+var rg_02_name = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
+var rg_03_name = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
 
 //=================================================//
 //================Networking Parameters============//
 
 //======NSG Parameters======//
 //Define your NSG names here
-param nsg_bastion_name string = 'NSG-BASTION-${env_prefix}-001'
-param nsg_private_name string = 'NSG-PRIVATE-${env_prefix}-001'
-param nsg_public_name string = 'NSG-PUBLIC-${env_prefix}-001'
+var nsg_bastion_name = 'NSG-BASTION-${env_prefix[env].envPrefix}-001'
+var nsg_private_name = 'NSG-PRIVATE-${env_prefix[env].envPrefix}-001'
+var nsg_public_name = 'NSG-PUBLIC-${env_prefix[env].envPrefix}-001'
 
 
 //=====VNET Parameters=====//
 
 //HUB VNET Parameters
-param vnet_hub_name string = 'VNET-HUB-${env_prefix}'   //Desired name of the vnet
+var vnet_hub_name = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
 param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
 //HUB Subnet Parameters
@@ -98,16 +91,16 @@ param subnet_hub_bas_address_space string = '10.0.2.0/24'         //Subnet addre
 param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet address space for Public Subnet
 
 //SPOKE 001 VNET Parameters
-param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix}-001'   //Desired name of the vnet
+var vnet_spoke_001_name = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
 param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
 
 //SPOKE 001 Subnet Parameters
-param subnet_spoke_001_name string = 'WEB-VMs-${env_prefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
 //Peering Parameters
-param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
-param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
+var peering_name_hub_to_spoke_001 = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
+var peering_name_spoke_001_to_hub = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
 param allowForwardedTraffic bool = true
 param allowGatewayTransit bool = false
 param allowVirtualNetworkAccess bool = true
@@ -116,20 +109,20 @@ param peeringState string = 'Connected'
 param useRemoteGateways bool = false    // would normally be true, but I have no gateway right now in the hub
 
 //Public IP Address Parameters
-param publicIPAddressName string = 'PUB-IP-${env_prefix}-BASTION'
+var publicIPAddressName = 'PUB-IP-${env_prefix[env].envPrefix}-BASTION'
 param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
 param publicIPAllocationMethod string = 'Static' //Should be Static for Bastion Usage
 param publicIPAddressVersion string = 'IPv4'
 param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
 //Bastion Host Parameters
-param bastionName string = 'BASTION-${env_prefix}-001'
+var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 
 //====================================================//
 //==========Backup and Recovery Parameters============//
 
 //Recovery Services Vault Parameters
-param vaultName string = 'RSV-${env_prefix}-001'                //Name of the Recovery Services Vault
+var vaultName = 'RSV-${env_prefix[env].envPrefix}-001'                //Name of the Recovery Services Vault
 param vaultSku object = {
   name: 'RS0'
   tier: 'Standard'
@@ -143,7 +136,7 @@ param vaultSku object = {
   'ZoneRedundant'
 ])
 param BackupType string = 'LocallyRedundant'
-param backupPolicyName string = 'ABC-VM-${env_prefix}-DefaultBackup'
+var backupPolicyName = 'ABC-VM-${env_prefix[env].envPrefix}-DefaultBackup'
 
 //========================================================//
 //==============Compute and Storage Parameters============//

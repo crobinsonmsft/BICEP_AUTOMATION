@@ -2,7 +2,9 @@
 //=====THIS MAIN BICEP FILE CAN ORCHESTRATE THE DEPLOYMENT OF MULTIPLE AZURE SERVICES======//
 //=========================================================================================//
 
-targetScope = 'subscription'                      // We will deploy these modules against our subscription
+targetScope = 'subscription'         // We will deploy these modules against our subscription
+                                    //can't use decorator here.  Can be managementgroup, subscription
+                                    //or resourcegroup
 
 //=========================================================================================//
 //================================== START OF PARAMETERS ==================================//
@@ -12,30 +14,32 @@ targetScope = 'subscription'                      // We will deploy these module
 //===========================================//
 //==============Global Parameters============//
 
+//Environment Parameter
 
-@allowed([
-  'Production'
-  'Development'
-  'Sandbox'
-])
-@description('Defines the environment classification our deployment will be based on')
-param env string = 'Sandbox'  // Set this value
+    @allowed([
+      'Production'
+      'Development'
+      'Sandbox'
+    ])
+    @description('Defines the environment classification our deployment will be based on')
+    param env string = 'Development'  // Set this value
 
-//---------------------------------//
+    //---------------------------------//
 
 
-var env_prefix = {
-  Production: {
-    envPrefix : 'PRD'
-  }
-  Development: {
-    envPrefix: 'DEV'
-  }
-  Sandbox: {
-    envPrefix: 'SBX'
-  }
-}
+    param env_prefix object = {
+      Production: {
+        envPrefix : 'PRD'
+      }
+      Development: {
+        envPrefix: 'DEV'
+      }
+      Sandbox: {
+        envPrefix: 'SBX'
+      }
+    }
 
+//============================================//
 
 
 @allowed([
@@ -46,6 +50,8 @@ var env_prefix = {
 @description('Select the Azure region to deploy to')
 //param location string = resourceGroup().location  //Will use the location of the resource group if resource group targeted. Comment this out if targeting subscription or mgt group
 param location string = 'eastus'                    // Location that resource will be deployed to.  This location param will drive the entire deployment
+
+//Tagging object
 
 param tags object = {                               // Edit tags accordingly
   Environment: env
@@ -76,7 +82,7 @@ var nsg_public_name = 'NSG-PUBLIC-${env_prefix[env].envPrefix}-001'
 //=====VNET Parameters=====//
 
 //HUB VNET Parameters
-var vnet_hub_name = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
+param vnet_hub_name string = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
 param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
 //HUB Subnet Parameters
@@ -91,13 +97,14 @@ param subnet_hub_bas_address_space string = '10.0.2.0/24'         //Subnet addre
 param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet address space for Public Subnet
 
 //SPOKE 001 VNET Parameters
-var vnet_spoke_001_name = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
+param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
 param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
 
 //SPOKE 001 Subnet Parameters
 var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
+/*
 //Peering Parameters
 var peering_name_hub_to_spoke_001 = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
 var peering_name_spoke_001_to_hub = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
@@ -107,6 +114,29 @@ param allowVirtualNetworkAccess bool = true
 param doNotVerifyRemoteGateways bool = false
 param peeringState string = 'Connected'
 param useRemoteGateways bool = false    // would normally be true, but I have no gateway right now in the hub
+*/
+
+//=======Peering Parameters========//
+
+  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
+  param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
+
+  // Hub to Spoke Params 
+  param huballowForwardedTraffic bool = true
+  param huballowGatewayTransit bool = true
+  param huballowVirtualNetworkAccess bool = true
+  param hubdoNotVerifyRemoteGateways bool = false
+  param hubpeeringState string = 'Connected'
+  param hubuseRemoteGateways bool = false    
+
+
+  // Spoke to Hub Params
+  param spokeallowForwardedTraffic bool = true
+  param spokeallowGatewayTransit bool = false
+  param spokeallowVirtualNetworkAccess bool = true
+  //param spokedoNotVerifyRemoteGateways bool = true
+  param spokepeeringState string = 'Connected'
+  param spokeuseRemoteGateways bool = false   // Should be true unless you have no gateway in the hub
 
 //Public IP Address Parameters
 var publicIPAddressName = 'PUB-IP-${env_prefix[env].envPrefix}-BASTION'
@@ -150,7 +180,7 @@ param adminUsername string = 'azureadmin'
 param adminPassword string
 
 @description('Name of the virtual machine.')
-param vmName string = 'vm-001'
+param vmName string = 'vm-${env_prefix}-001'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
@@ -241,16 +271,24 @@ param publicIpSku string = 'Basic'
 ])
 param OSVersion string = '2022-datacenter'
 
-//azureprice.net - reference for full list and costs
+
 @description('Size of the virtual machine.')
-param vmSize string = 'Standard_B2s'
+param vmSize string = 'Standard_B2s'      //azureprice.net - reference for full list and costs
 
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
 param nicName string = '${vmName}-nic'
 
+
+
+//=========================================================================================//
+//=========================================================================================//
 //=========================================================================================//
 //================================== START OF MODULES =====================================//
 //=========================================================================================//
+//=========================================================================================//
+//=========================================================================================//
+
+
 
 //===Start of Resource Group Modules====//
   //Resource Group Module
@@ -331,6 +369,7 @@ param nicName string = '${vmName}-nic'
     ]
   }
 
+  /*
   //Peering Module
   module peering_001 'Modules/Network/Peerings/peering.bicep' = {
     name: 'peering_001-module'
@@ -354,6 +393,52 @@ param nicName string = '${vmName}-nic'
       //route_table
     ]
   }
+  */
+
+  //===Peering Modules
+
+    //Peering Module Spoke to Hub
+    module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
+      name: 'peering_module_spoke_to_hub'
+      scope: resourceGroup(rg_01_name)     
+      params: {
+        peering_name_spoke_to_hub : peering_name_spoke_001_to_hub     // spoke 001 to hub peering name
+        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
+        spokeallowForwardedTraffic : spokeallowForwardedTraffic
+        spokeallowGatewayTransit : spokeallowGatewayTransit
+        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
+        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways
+        spokepeeringState : spokepeeringState
+        spokeuseRemoteGateways : spokeuseRemoteGateways
+      }
+      dependsOn: [
+        vnet_spoke_001
+        //route_table
+      ] 
+    }
+
+
+    // Peering Hub to Spoke
+    module peering 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
+      name: 'peering_module_hub_to_spoke'
+      //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
+      scope: resourceGroup(rg_01_name)
+      params: {
+        peering_name_hub_to_spoke : peering_name_hub_to_spoke_001      // hub to spoke 001 peering name
+        vnet_spoke_id: vnet_spoke_001.outputs.vnet_spoke_001_id
+        huballowForwardedTraffic : huballowForwardedTraffic
+        huballowGatewayTransit : huballowGatewayTransit
+        huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
+        hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
+        hubpeeringState : hubpeeringState
+        hubuseRemoteGateways : hubuseRemoteGateways
+      }
+      dependsOn: [
+        vnet_hub
+        vnet_spoke_001
+      ] 
+    }
+
 
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
@@ -374,6 +459,8 @@ param nicName string = '${vmName}-nic'
   }
 
   //Bastion Host Module
+
+  /*
   module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
     name: 'bastion-host-module'
     scope: resourceGroup(rg_01_name)
@@ -390,6 +477,7 @@ param nicName string = '${vmName}-nic'
         publicIP
       ]
   } 
+*/
 
   //=========End of Network Modules=======//
 
@@ -432,6 +520,7 @@ param nicName string = '${vmName}-nic'
 
   //=======Start of Compute Modules=======//
 
+/*
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -452,4 +541,4 @@ param nicName string = '${vmName}-nic'
       vnet_spoke_001
     ]
   }
-
+*/

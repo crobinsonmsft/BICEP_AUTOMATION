@@ -167,7 +167,6 @@ param vmInsights_ object = {
   name: 'VMInsights(${workspaceName})'
   galleryName: 'VMInsights'
 }
-    param workspace_id string
 
 
 //====================================================//

@@ -57,7 +57,7 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
       {
         name: 'AllowAzureLoadBalancerInbound'
         properties: {
-          description: 'Ingress Traffic from Azure Load Balancer: For health probes, enable port 443 inbound from the AzureLoadBalancer service tag. This enables Azure Load Balancer to detect connectivity'
+          description: 'For health probes, enable port 443 inbound from the AzureLoadBalancer service tag. This enables Azure Load Balancer to detect connectivity'
           protocol: 'Tcp'
           sourcePortRange: '*'
           destinationPortRange: '443'
@@ -75,7 +75,7 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
       {
         name: 'AllowBastionHostCommunication'
         properties: {
-          description: 'Ingress Traffic from Azure Bastion data plane: For data plane communication between the underlying components of Azure Bastion, enable ports 8080, 5701 inbound from the VirtualNetwork service tag to the VirtualNetwork service tag. This enables the components of Azure Bastion to talk to each other.'
+          description: 'For data plane communication between the underlying components of Azure Bastion'
           protocol: '*'
           sourcePortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'

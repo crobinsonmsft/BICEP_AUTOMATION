@@ -1,45 +1,30 @@
-targetScope = 'resourceGroup'
-@description('The name of the Log Analytics Workspace')
+//=======This bicep file creates a Log Analytics Workspace=======//
+
+//=================Params=================//
+
 param workspaceName string
 param location string
 @allowed([
   'PerGB2018'
 ])
-param vaultSku string
+param logAnalyticsWorkspaceSku string
+param tags object
 
-// Log Analytics Workspace Declaration
+
+
+//===============End Params===============//
+
+//======== Start Resource Creation =======//
+//Log Analytics Workspace
 resource workspace_ 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
   name:workspaceName
   location:location
-  tags: {}
+  tags: tags
   properties: {
     sku: {
-      name: vaultSku
+      name: logAnalyticsWorkspaceSku
     }
   }
 }
 
-//Variable Declaration
-var vmInsights = {
-  name: 'VMInsights(${workspaceName})'
-  galleryName: 'VMInsights'
-}
-
-resource solutionsVMInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
-  name: vmInsights.name
-  location: location
-  /*
-  dependsOn: [
-    workspace_
-  ]
-  */
-  properties: {
-    workspaceResourceId: workspace_.id
-  }
-  plan: {
-    name: vmInsights.name
-    publisher: 'Microsoft'
-    product: 'OMSGallery/${vmInsights.galleryName}'
-    promotionCode: ''
-  }
-}
+output workspace_id string = workspace_.id

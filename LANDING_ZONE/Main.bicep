@@ -104,22 +104,11 @@ param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address spa
 var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
 param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
-/*
-//Peering Parameters
-var peering_name_hub_to_spoke_001 = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
-var peering_name_spoke_001_to_hub = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
-param allowForwardedTraffic bool = true
-param allowGatewayTransit bool = false
-param allowVirtualNetworkAccess bool = true
-param doNotVerifyRemoteGateways bool = false
-param peeringState string = 'Connected'
-param useRemoteGateways bool = false    // would normally be true, but I have no gateway right now in the hub
-*/
 
 //=======Peering Parameters========//
 
-  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
-  param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
+  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
+  param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/${vnet_spoke_001_name}-peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
 
   // Hub to Spoke Params 
   param huballowForwardedTraffic bool = true
@@ -148,25 +137,52 @@ param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP
 //Bastion Host Parameters
 var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 
+
+//=====================================================//
+//================Monitoring and Alerting==============//
+
+//==Action Group Parameters==//
+
+param emailAddress array = [        //The distribution group that will receive SMTP alert notifications
+  'crobinson@microsoft.com'
+  'joesmtp@fakedomainname.com' 
+]       
+param sms array = [
+  '6468383806'
+]
+param ag_admins_name string = 'Admins'
+
+
+//Log Analytics Workspace
+@description('The name of the Log Analytics Workspace')
+param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Recovery Services Vault
+@allowed([
+  'PerGB2018'
+])
+param logAnalyticsWorkspaceSku string = 'PerGB2018'
+
+
+//VM Insights Parameters
+param vmInsights_ object = {
+  name: 'VMInsights(${workspaceName})'
+  galleryName: 'VMInsights'
+}
+    param workspace_id string
+
+
 //====================================================//
 //==========Backup and Recovery Parameters============//
 
-//Recovery Services Vault Parameters
-var vaultName = 'RSV-${env_prefix[env].envPrefix}-001'                //Name of the Recovery Services Vault
-param vaultSku object = {
-  name: 'RS0'
-  tier: 'Standard'
-}
 
-//Backup Parameters
-@allowed([
-  'GeoRedundant' 
-  'LocallyRedundant'
-  'ReadAccessGeoZoneRedundant'
-  'ZoneRedundant'
-])
-param BackupType string = 'LocallyRedundant'
-var backupPolicyName = 'ABC-VM-${env_prefix[env].envPrefix}-DefaultBackup'
+    //Backup Parameters
+    @allowed([
+      'GeoRedundant' 
+      'LocallyRedundant'
+      'ReadAccessGeoZoneRedundant'
+      'ZoneRedundant'
+    ])
+    param BackupType string = 'LocallyRedundant'
+    var backupPolicyName = 'ABC-VM-${env_prefix[env].envPrefix}-DefaultBackup'
 
 //========================================================//
 //==============Compute and Storage Parameters============//
@@ -369,32 +385,6 @@ param nicName string = '${vmName}-nic'
     ]
   }
 
-  /*
-  //Peering Module
-  module peering_001 'Modules/Network/Peerings/peering.bicep' = {
-    name: 'peering_001-module'
-    scope: resourceGroup(rg_01_name)
-    params: {
-      allowForwardedTraffic: allowForwardedTraffic
-      allowGatewayTransit: allowGatewayTransit
-      allowVirtualNetworkAccess: allowVirtualNetworkAccess
-      doNotVerifyRemoteGateways:  doNotVerifyRemoteGateways
-      peeringState: peeringState
-      peering_name_hub_to_spoke_001 : peering_name_hub_to_spoke_001
-      peering_name_spoke_001_to_hub : peering_name_spoke_001_to_hub
-      vnet_hub_id: vnet_hub.outputs.vnet_hub_id
-      vnet_spoke_001_id : vnet_spoke_001.outputs.vnet_spoke_001_id
-      peering_prefix_hub: vnet_hub_address_space
-      useRemoteGateways: useRemoteGateways
-    }
-    dependsOn: [
-      vnet_hub
-      vnet_spoke_001
-      //route_table
-    ]
-  }
-  */
-
   //===Peering Modules
 
     //Peering Module Spoke to Hub
@@ -498,7 +488,9 @@ param nicName string = '${vmName}-nic'
       rg
     ]
   }
+*/
 
+/*
   module backup 'Modules/BackUp/backup_policies.bicep' = {
     name: 'backup-policies-module'
     scope: resourceGroup(rg_02_name)
@@ -541,4 +533,78 @@ param nicName string = '${vmName}-nic'
       vnet_spoke_001
     ]
   }
+*/
+
+//=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
+
+
+module action_group 'Modules/Monitoring/action_group.bicep' = {
+  name: 'action_group-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    tags: tags
+    actionGroups_Admins_name: ag_admins_name
+    emailAddress: emailAddress
+    sms: sms
+  }
+  dependsOn: [
+    rg
+  ]
+}
+
+
+
+
+module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
+  name: 'law-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    tags: tags
+    location: location
+    logAnalyticsWorkspaceSku: logAnalyticsWorkspaceSku
+    workspaceName: workspaceName
+  }
+  dependsOn: [
+      rg
+    ]
+}
+
+//VM Insights Module
+module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
+  name: 'vm-insights-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    tags: tags
+    location: location
+    workspaceName: workspaceName
+    vmInsights : vmInsights_
+    workspace_id : law.outputs.workspace_id
+  }
+  dependsOn: [
+      law
+    ]
+}
+
+
+
+/*
+module monitoring_cpu 'Monitoring/monitoring_cpu.bicep' = {
+  name: 'monitoring_cpu_module'
+  scope: resourceGroup(rg_infra_name)
+  params: {
+    metricAlerts_vm_cpu_percentage_name : metricAlerts_vm_cpu_percentage_name
+    actiongroups_externalid : action_group.outputs.actionGroup_id
+    p_location : p_location
+    p_severity : p_severity
+    p_enabled : p_enabled
+    p_scopes : p_scopes
+    p_evaluationFrequency : p_evaluationFrequency
+    p_windowSize : p_windowSize
+    p_threshold : p_threshold
+    p_targetResourceRegion : p_targetResourceRegion
+  }
+  dependsOn: [
+    action_group
+  ]
+}
 */

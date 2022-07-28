@@ -55,6 +55,48 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
         }
       }
       {
+        name: 'AllowAzureLoadBalancerInbound'
+        properties: {
+          description: 'Ingress Traffic from Azure Load Balancer: For health probes, enable port 443 inbound from the AzureLoadBalancer service tag. This enables Azure Load Balancer to detect connectivity'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'AzureLoadBalancer'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 130
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowBastionHostCommunication'
+        properties: {
+          description: 'Ingress Traffic from Azure Bastion data plane: For data plane communication between the underlying components of Azure Bastion, enable ports 8080, 5701 inbound from the VirtualNetwork service tag to the VirtualNetwork service tag. This enables the components of Azure Bastion to talk to each other.'
+          protocol: '*'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'virtualNetwork'
+          access: 'Allow'
+          priority: 140
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '8080'
+            '5701'
+          ]
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+
+              //-----END INBOUND
+              //-----START OUTBOUND
+
+      {
         name: 'AllowSshRdpOutbound'
         properties: {
           description: 'Allow egress traffic to target VMs over private IP'
@@ -85,6 +127,44 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
           destinationAddressPrefix: 'AzureCloud'
           access: 'Allow'
           priority: 120
+          direction: 'Outbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowBastionCommunication'
+        properties: {
+          description: 'Allow egress traffic to public endpoints within Azure'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'virtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 130
+          direction: 'Outbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '8080'
+            '5701'
+          ]
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowGetSessionInformation'
+        properties: {
+          description: 'Allow egress traffic to public endpoints within Azure'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: 'Internet'
+          access: 'Allow'
+          priority: 140
           direction: 'Outbound'
           sourcePortRanges: []
           destinationPortRanges: []

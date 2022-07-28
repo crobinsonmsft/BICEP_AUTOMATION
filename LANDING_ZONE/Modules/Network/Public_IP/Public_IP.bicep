@@ -33,4 +33,5 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
 }
 
 //Set ID Output here to be used by other modules
+
 output public_ip_id string = publicIP.id

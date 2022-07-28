@@ -79,7 +79,7 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
           protocol: '*'
           sourcePortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: 'virtualNetwork'
+          destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 140
           direction: 'Inbound'
@@ -140,7 +140,7 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
           description: 'Allow egress traffic to public endpoints within Azure'
           protocol: 'Tcp'
           sourcePortRange: '*'
-          sourceAddressPrefix: 'virtualNetwork'
+          sourceAddressPrefix: 'VirtualNetwork'
           destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 130

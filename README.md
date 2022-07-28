@@ -70,7 +70,7 @@ az deployment sub create --name [SOME DEPLOYMENT NAME] --location eastus --templ
 ### Delete a Resource Group
 
 ```
-az group delete -n [someresourcegroupname]
+az group delete -n [someresourcegroupname] -y
 ```
 
 

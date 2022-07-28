@@ -169,6 +169,26 @@ param vmInsights_ object = {
 }
 
 
+//=====CPU Alerting Parameters=//
+
+param metricAlerts_vm_cpu_percentage_name string = 'vm_cpu_percentage'    //Name of the Alert
+param p_location string = 'global'        //Region alert will apply to
+param p_severity int = 2                          //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
+param p_enabled bool = true
+
+param p_scopes_array array = [
+  '/subscriptions/somenum1'                               //AGO-NP-01 ---- [0]
+  '/subscriptions/somenum2'                               //TSS-HUB-01 ---- [1]
+  '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription ---- [2]
+]
+param p_scopes array = [
+  p_scopes_array[2]
+]
+param p_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
+param p_windowSize string = 'PT15M'             //The period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold
+param p_threshold int = 70
+param p_targetResourceRegion string = location
+
 //====================================================//
 //==========Backup and Recovery Parameters============//
 
@@ -586,13 +606,13 @@ module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
 
 
 
-/*
-module monitoring_cpu 'Monitoring/monitoring_cpu.bicep' = {
+
+module monitoring_cpu 'Modules/Monitoring/monitoring_cpu.bicep' = {
   name: 'monitoring_cpu_module'
-  scope: resourceGroup(rg_infra_name)
+  scope: resourceGroup(rg_02_name)
   params: {
     metricAlerts_vm_cpu_percentage_name : metricAlerts_vm_cpu_percentage_name
-    actiongroups_externalid : action_group.outputs.actionGroup_id
+    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
     p_location : p_location
     p_severity : p_severity
     p_enabled : p_enabled
@@ -606,4 +626,4 @@ module monitoring_cpu 'Monitoring/monitoring_cpu.bicep' = {
     action_group
   ]
 }
-*/
+

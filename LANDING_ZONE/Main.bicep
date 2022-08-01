@@ -143,13 +143,11 @@ var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 
 //==Action Group Parameters==//
 
-param emailAddress array = [        //The distribution group that will receive SMTP alert notifications
-  'crobinson@microsoft.com'
-  'joesmtp@fakedomainname.com' 
-]       
-param sms array = [
-  '6468383806'
-]
+@description('Enter Emails or Distribution lists in SMTP format to direct alerts to.')
+param emailAddress array = [] // Sensitive.  Supply at command line
+
+param sms array = [] // Sensitive.  Supply at command line
+
 param ag_admins_name string = 'Admins'
 
 
@@ -206,6 +204,7 @@ param p_targetResourceRegion string = location
 //========================================================//
 //==============Compute and Storage Parameters============//
 
+//Virtual Machine
 @description('Username for the Virtual Machine.')
 param adminUsername string = 'azureadmin'
 

@@ -50,7 +50,7 @@ az deployment group create --resource-group [resource_group_name] --template-fil
 ## To run it against a subscription (to deploy a landing zone for example) do the following:
 
 ```
-az deployment sub create --name [SOME DEPLOYMENT NAME] --location eastus --template-file .\Main.bicep
+az deployment sub create --name 'ExampleDeployment'$(date +"%d-%b-%Y") --location eastus --template-file .\Main.bicep
 ```
 
 ### See acceptable locations for current subscription
@@ -61,10 +61,13 @@ az account list-locations
 
 ### Run against subscription using parameter file
 ```
-az deployment sub create --name [SOME DEPLOYMENT NAME] --location eastus --template-file .\Main.bicep --parameters .\parameterfilename.json
+az deployment sub create --name 'ExampleDeployment'$(date +"%d-%b-%Y") --location eastus --template-file .\Main.bicep --parameters .\parameterfilename.json
 ```
 
-
+### To Pass Inline parameters
+```
+az deployment sub create --name 'SOME DEPLOYMENT NAME' --location eastus -p exampleArray="['value1','value2']" someparamname='somestringvalue'
+```
 
 ## Cleanup 
 ### Delete a Resource Group

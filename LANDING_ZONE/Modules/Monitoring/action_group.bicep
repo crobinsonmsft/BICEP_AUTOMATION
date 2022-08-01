@@ -26,11 +26,14 @@ resource actionGroups_Admins_name_resource 'microsoft.insights/actionGroups@2021
         emailAddress: emailAddress[0]
         useCommonAlertSchema: false
       }
+      //Uncomment the following section if you'd like to include another SMTP address
+      /*  
       {
         name: 'Email Microsoft Account_-EmailAction-'
         emailAddress: emailAddress[1]
         useCommonAlertSchema: false
       }
+      */
     ]
     smsReceivers: [
       {

@@ -72,6 +72,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       imageReference: {
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
+
         sku: OSVersion
         version: 'latest'
       }

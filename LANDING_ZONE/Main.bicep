@@ -406,6 +406,7 @@ param nicName string = '${vmName}-nic'
   //===Peering Modules
 
     //Peering Module Spoke to Hub
+    /*
     module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
       name: 'peering_module_spoke_to_hub'
       scope: resourceGroup(rg_01_name)     
@@ -446,8 +447,9 @@ param nicName string = '${vmName}-nic'
         vnet_spoke_001
       ] 
     }
+*/
 
-
+ /*
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -468,7 +470,7 @@ param nicName string = '${vmName}-nic'
 
   //Bastion Host Module
 
-  /*
+ 
   module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
     name: 'bastion-host-module'
     scope: resourceGroup(rg_01_name)
@@ -530,7 +532,7 @@ param nicName string = '${vmName}-nic'
 
   //=======Start of Compute Modules=======//
 
-/*
+
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -551,11 +553,11 @@ param nicName string = '${vmName}-nic'
       vnet_spoke_001
     ]
   }
-*/
+
 
 //=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
 
-
+/*
 module action_group 'Modules/Monitoring/action_group.bicep' = {
   name: 'action_group-module'
   scope: resourceGroup(rg_02_name)
@@ -603,9 +605,6 @@ module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
     ]
 }
 
-
-
-
 module monitoring_cpu 'Modules/Monitoring/monitoring_cpu.bicep' = {
   name: 'monitoring_cpu_module'
   scope: resourceGroup(rg_02_name)
@@ -625,4 +624,4 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_cpu.bicep' = {
     action_group
   ]
 }
-
+*/

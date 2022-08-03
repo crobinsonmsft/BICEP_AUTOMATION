@@ -15,7 +15,7 @@ param tags object
 
 //===============End Params===============//
 
-//VM Insights
+//VM Insights   https://docs.microsoft.com/en-us/azure/azure-monitor/vm/vminsights-overview
 resource solutionsVMInsights 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
   name: vmInsights.name
   location: location

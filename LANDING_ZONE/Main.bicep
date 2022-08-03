@@ -142,18 +142,18 @@ var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 //================Monitoring and Alerting==============//
 
 //==Action Group Parameters==//
-
-@description('Enter Emails or Distribution lists in SMTP format to direct alerts to.')
+@description('Enter Emails or Distribution lists in SMTP format to direct Email alerts to.')
 param emailAddress array = [] // Sensitive.  Supply at command line
 
+@description('Enter phone number in numerical format to direct SMS alerts to.')
 param sms array = [] // Sensitive.  Supply at command line
 
-param ag_admins_name string = 'Admins'
+param ag_admins_name string = 'Admins'    //Name of Action Group
 
 
 //Log Analytics Workspace
 @description('The name of the Log Analytics Workspace')
-param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Recovery Services Vault
+param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Log Analytics Workspace
 @allowed([
   'PerGB2018'
 ])
@@ -200,6 +200,12 @@ param p_targetResourceRegion string = location
     ])
     param BackupType string = 'LocallyRedundant'
     var backupPolicyName = 'ABC-VM-${env_prefix[env].envPrefix}-DefaultBackup'
+    param vaultName string = 'RSV-${env_prefix[env].envPrefix}-001'
+    param vaultSku object = {
+      name: 'RS0'
+      tier: 'Standard'
+    }
+
 
 //========================================================//
 //==============Compute and Storage Parameters============//
@@ -214,7 +220,7 @@ param adminUsername string = 'azureadmin'
 param adminPassword string
 
 @description('Name of the virtual machine.')
-param vmName string = 'vm-${env_prefix}-001'
+param vmName string = 'vm-${env_prefix[env].envPrefix}-001'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
@@ -406,7 +412,7 @@ param nicName string = '${vmName}-nic'
   //===Peering Modules
 
     //Peering Module Spoke to Hub
-    /*
+    
     module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
       name: 'peering_module_spoke_to_hub'
       scope: resourceGroup(rg_01_name)     
@@ -447,9 +453,9 @@ param nicName string = '${vmName}-nic'
         vnet_spoke_001
       ] 
     }
-*/
 
- /*
+
+ 
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -487,14 +493,14 @@ param nicName string = '${vmName}-nic'
         publicIP
       ]
   } 
-*/
+
 
   //=========End of Network Modules=======//
 
 
   //=======Start of Backup and Recovery Modules=======//
 
-/*
+
   module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
     name: 'rsv-module'
     scope: resourceGroup(rg_02_name)
@@ -508,9 +514,9 @@ param nicName string = '${vmName}-nic'
       rg
     ]
   }
-*/
 
-/*
+
+
   module backup 'Modules/BackUp/backup_policies.bicep' = {
     name: 'backup-policies-module'
     scope: resourceGroup(rg_02_name)
@@ -520,13 +526,13 @@ param nicName string = '${vmName}-nic'
       tags: tags
       BackupType: BackupType
       backupPolicyName: backupPolicyName
-      env_prefix: env_prefix
+      env_prefix: env_prefix[env].envPrefix
     }
     dependsOn: [
       rsv_001
     ]
   }
-  */
+  
 
   //=======End  of Backup and Recovery Modules=======//
 
@@ -557,7 +563,7 @@ param nicName string = '${vmName}-nic'
 
 //=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
 
-/*
+//Action Group to direct SMTP and SMS alerts to
 module action_group 'Modules/Monitoring/action_group.bicep' = {
   name: 'action_group-module'
   scope: resourceGroup(rg_02_name)
@@ -573,8 +579,7 @@ module action_group 'Modules/Monitoring/action_group.bicep' = {
 }
 
 
-
-
+//Log Analytics Workspace
 module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
   name: 'law-module'
   scope: resourceGroup(rg_02_name)
@@ -624,4 +629,3 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_cpu.bicep' = {
     action_group
   ]
 }
-*/

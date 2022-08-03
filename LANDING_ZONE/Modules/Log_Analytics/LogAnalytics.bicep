@@ -4,13 +4,8 @@
 
 param workspaceName string
 param location string
-@allowed([
-  'PerGB2018'
-])
 param logAnalyticsWorkspaceSku string
 param tags object
-
-
 
 //===============End Params===============//
 

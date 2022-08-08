@@ -62,7 +62,7 @@ resource vm_system_state_resource 'microsoft.insights/scheduledqueryrules@2021-0
     targetResourceTypes: [
       'Microsoft.Compute/virtualMachines'
     ]
-    windowSize: 'PT1M'
+    windowSize: 'PT5M'
     overrideQueryTimeRange: 'P2D'
     criteria: {
       allOf: [

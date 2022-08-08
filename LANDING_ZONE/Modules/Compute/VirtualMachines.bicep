@@ -4,7 +4,7 @@
 
 //global params
 param adminUsername string
-param adminPassword string
+param adminpass string
 param tags object
 param OSVersion string
 param vmSize string
@@ -13,6 +13,8 @@ param vmName string
 param storageAccountName string
 param nicName string
 param nicSubnetId string
+param workspace_id2 string
+param workspace_key string
 //param dnsLabelPrefixvm string
 
 //===============End Params===============//
@@ -45,7 +47,6 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
           }
           */
           subnet: {
-            //id: resourceId('Microsoft.Network/virtualNetworks/subnets', vn.name, subnetName)
             id: nicSubnetId 
           }
         }
@@ -55,7 +56,7 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
 }
 
 //Create the VM
-resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
+resource vm_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
   name: vmName
   location: location
   tags: tags
@@ -66,7 +67,7 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     osProfile: {
       computerName: vmName
       adminUsername: adminUsername
-      adminPassword: adminPassword
+      adminPassword: adminpass
     }
     storageProfile: {
       imageReference: {
@@ -105,5 +106,55 @@ resource vm 'Microsoft.Compute/virtualMachines@2022-03-01' = {
     }
   }
 }
+
+output vm_001_id string = vm_001.id
+
+//=========================//
+//Onboard to VM Insights
+//=========================//
+
+param osType string = 'windows'
+
+//var VmName_var = split(vm_001.id, '/')[8]
+var DaExtensionName = ((toLower(osType) == 'windows') ? 'DependencyAgentWindows' : 'DependencyAgentLinux')
+var DaExtensionType = ((toLower(osType) == 'windows') ? 'DependencyAgentWindows' : 'DependencyAgentLinux')
+var DaExtensionVersion = '9.5'
+var MmaExtensionName = ((toLower(osType) == 'windows') ? 'MMAExtension' : 'OMSExtension')
+var MmaExtensionType = ((toLower(osType) == 'windows') ? 'MicrosoftMonitoringAgent' : 'OmsAgentForLinux')
+var MmaExtensionVersion = ((toLower(osType) == 'windows') ? '1.0' : '1.4')
+
+
+resource daExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
+  parent: vm_001
+  name: DaExtensionName
+  location: location
+  properties: {
+    publisher: 'Microsoft.Azure.Monitoring.DependencyAgent'
+    type: DaExtensionType
+    typeHandlerVersion: DaExtensionVersion
+    autoUpgradeMinorVersion: true
+  }
+}
+
+resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
+  parent: vm_001
+  name: MmaExtensionName
+  location: location
+  properties: {
+    publisher: 'Microsoft.EnterpriseCloud.Monitoring'
+    type: MmaExtensionType
+    typeHandlerVersion: MmaExtensionVersion
+    autoUpgradeMinorVersion: true
+    settings: {
+      workspaceId: workspace_id2
+      azureResourceId: vm_001.id
+      stopOnMultipleConnections: true
+    }
+    protectedSettings: {
+      workspaceKey: workspace_key
+    }
+  }
+}
+
 
 //output hostname string = pip.properties.dnsSettings.fqdn

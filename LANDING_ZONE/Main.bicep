@@ -141,51 +141,97 @@ var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 //=====================================================//
 //================Monitoring and Alerting==============//
 
-//==Action Group Parameters==//
-@description('Enter Emails or Distribution lists in SMTP format to direct Email alerts to.')
-param emailAddress array = [] // Sensitive.  Supply at command line
-
-@description('Enter phone number in numerical format to direct SMS alerts to.')
-param sms array = [] // Sensitive.  Supply at command line
-
-param ag_admins_name string = 'Admins'    //Name of Action Group
-
-
-//Log Analytics Workspace
-@description('The name of the Log Analytics Workspace')
-param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Log Analytics Workspace
-@allowed([
-  'PerGB2018'
-])
-param logAnalyticsWorkspaceSku string = 'PerGB2018'
-
-
-//VM Insights Parameters
-param vmInsights_ object = {
-  name: 'VMInsights(${workspaceName})'
-  galleryName: 'VMInsights'
+param subscription_scopes_array object = {
+  Production: {
+    subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'    //Visual Studio Enterprise Subscription
+  }
+  Development: {
+    subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+  }
+  Sandbox: {
+    subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+  }
 }
+
+  //==Action Group Parameters==//
+  @description('Enter Emails or Distribution lists in SMTP format to direct Email alerts to.')
+  param emailAddress array = [] // Sensitive.  Supply at command line
+
+  @description('Enter phone number in numerical format to direct SMS alerts to.')
+  param sms array = [] // Sensitive.  Supply at command line
+
+  param ag_admins_name string = 'Admins'    //Name of Action Group
+
+
+  //Log Analytics Workspace
+  @description('The name of the Log Analytics Workspace')
+  param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Log Analytics Workspace
+  @allowed([
+    'PerGB2018'
+  ])
+  param logAnalyticsWorkspaceSku string = 'PerGB2018'
+
+
+  //VM Insights Parameters
+  param vmInsights_ object = {
+    name: 'VMInsights(${workspaceName})'
+    galleryName: 'VMInsights'
+  }
 
 
 //=====CPU Alerting Parameters=//
 
 param metricAlerts_vm_cpu_percentage_name string = 'vm_cpu_percentage'    //Name of the Alert
-param p_location string = 'global'        //Region alert will apply to
-param p_severity int = 2                          //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
-param p_enabled bool = true
+param vmCpuPercentageAlert_location string = 'global'        //Region alert will apply to
+param vmCpuPercentageAlert_severity int = 2                          //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
+param vmCpuPercentageAlert_enabled bool = true
 
-param p_scopes_array array = [
-  '/subscriptions/somenum1'                               //AGO-NP-01 ---- [0]
-  '/subscriptions/somenum2'                               //TSS-HUB-01 ---- [1]
-  '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription ---- [2]
+param vmCpuPercentageAlert_scopes array = [
+  subscription_scopes_array[env].subscription
 ]
-param p_scopes array = [
-  p_scopes_array[2]
-]
-param p_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
-param p_windowSize string = 'PT15M'             //The period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold
-param p_threshold int = 70
-param p_targetResourceRegion string = location
+param vmCpuPercentageAlert_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
+param vmCpuPercentageAlert_windowSize string = 'PT15M'             //The period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold
+param vmCpuPercentageAlert_threshold int = 70
+param vmCpuPercentageAlert_targetResourceRegion string = location
+
+//=======VM System State Alerting Parameters===//
+
+@description('Name of the alert')
+@minLength(1)
+param vmSysStateAlertName string = 'VM_is_OFFLINE_and_UNRESPONSIVE'
+
+@description('Description of alert')
+param vmSysStateAlertDescription string = 'VM that is offline or unresponsive will generate an alert'
+
+@description('Severity of alert {0,1,2,3,4}')
+@allowed([
+  0
+  1
+  2
+  3
+  4
+])
+param vmSysStateAlertSeverity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
+
+@description('Enable or Disable the VM State Alert')
+param vmSysStateAlertEnabled bool = true
+param vmSysStateAlertScope_ids string = subscription_scopes_array[env].subscription
+
+@description('how often the metric alert is evaluated represented in ISO 8601 duration format')
+@allowed([
+  'PT1M'
+  'PT5M'
+  'PT15M'
+  'PT30M'
+  'PT1H'
+])
+param vmSysStateAlertEvalFrequency string = 'PT5M'
+
+@description('The ID of the action group that is triggered when the alert is activated or deactivated')
+param actiongroups_externalid string
+
+@description('The amount of time since the last failure was encounterd')
+param vmSysStateAlertQueryInterval string = '2m'
 
 //====================================================//
 //==========Backup and Recovery Parameters============//
@@ -216,11 +262,11 @@ param adminUsername string = 'azureadmin'
 
 @description('Password for the Virtual Machine.')
 @minLength(12)
-@secure()
-param adminPassword string
+//@secure()
+param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'vm-${env_prefix[env].envPrefix}-001'
+param vmName string = 'VM-${env_prefix[env].envPrefix}-004'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
@@ -319,7 +365,9 @@ param storageAccountName string = 'bootdiags${uniqueString(subscription().subscr
 param nicName string = '${vmName}-nic'
 
 
-
+//=========================================================================================//
+//=========================================================================================//
+//=========================================================================================//
 //=========================================================================================//
 //=========================================================================================//
 //=========================================================================================//
@@ -327,10 +375,13 @@ param nicName string = '${vmName}-nic'
 //=========================================================================================//
 //=========================================================================================//
 //=========================================================================================//
+//=========================================================================================//
+//=========================================================================================//
+//=========================================================================================//
 
-
-
+//===========================================//
 //===Start of Resource Group Modules====//
+//===========================================//
   //Resource Group Module
   module rg 'Modules/Resource_Groups/resourceGroups.bicep' = {
     name: 'rg-module'
@@ -342,10 +393,13 @@ param nicName string = '${vmName}-nic'
         rg_03_name: rg_03_name
       }
   }
-
+//===========================================//
 //======End of Resource Group Modules====//
+//===========================================//
 
+//===========================================//
 //=======Start of Network Modules=======//
+//===========================================//
 
   //NSG Module    // Creates all NSGs throughout deployment
   module nsg 'Modules/Network/NSG/NSGCreation.bicep' = {
@@ -412,7 +466,6 @@ param nicName string = '${vmName}-nic'
   //===Peering Modules
 
     //Peering Module Spoke to Hub
-    
     module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
       name: 'peering_module_spoke_to_hub'
       scope: resourceGroup(rg_01_name)     
@@ -454,8 +507,7 @@ param nicName string = '${vmName}-nic'
       ] 
     }
 
-
- 
+    /*
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -473,10 +525,10 @@ param nicName string = '${vmName}-nic'
         rg
       ]
   }
+  */
 
+  /*
   //Bastion Host Module
-
- 
   module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
     name: 'bastion-host-module'
     scope: resourceGroup(rg_01_name)
@@ -486,21 +538,23 @@ param nicName string = '${vmName}-nic'
         bastionName: bastionName
         publicipid: publicIP.outputs.public_ip_id
         bastionSubnetid: '${vnet_hub.outputs.vnet_hub_id}/subnets/${subnet_hub_bas_name}'
-
       }
       dependsOn: [
         vnet_spoke_001
         publicIP
       ]
   } 
+*/
 
+//===========================================//
+//=========End of Network Modules=======//
+//===========================================//
 
-  //=========End of Network Modules=======//
+//===========================================//
+//=======Start of Backup and Recovery Modules=======//
+//===========================================//
 
-
-  //=======Start of Backup and Recovery Modules=======//
-
-
+/*
   module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
     name: 'rsv-module'
     scope: resourceGroup(rg_02_name)
@@ -532,11 +586,14 @@ param nicName string = '${vmName}-nic'
       rsv_001
     ]
   }
-  
+  */
+//===========================================//
+//====End  of Backup and Recovery Modules====//
+//===========================================//
 
-  //=======End  of Backup and Recovery Modules=======//
-
-  //=======Start of Compute Modules=======//
+//===========================================//
+//=======Start of Compute Modules=======//
+//===========================================//
 
 
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
@@ -545,7 +602,7 @@ param nicName string = '${vmName}-nic'
     
     params: {
       adminUsername: adminUsername
-      adminPassword: adminPassword
+      adminpass: adminpass
       vmName: vmName
       storageAccountName: storageAccountName
       OSVersion: OSVersion
@@ -554,14 +611,17 @@ param nicName string = '${vmName}-nic'
       tags: tags
       location: location
       nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      workspace_id2 : law.outputs.workspaceIdOutput
+      workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
       vnet_spoke_001
     ]
   }
 
-
+//===========================================//
 //=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
+//===========================================//
 
 //Action Group to direct SMTP and SMS alerts to
 module action_group 'Modules/Monitoring/action_group.bicep' = {
@@ -577,7 +637,6 @@ module action_group 'Modules/Monitoring/action_group.bicep' = {
     rg
   ]
 }
-
 
 //Log Analytics Workspace
 module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
@@ -610,22 +669,43 @@ module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
     ]
 }
 
-module monitoring_cpu 'Modules/Monitoring/monitoring_cpu.bicep' = {
+module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
   name: 'monitoring_cpu_module'
   scope: resourceGroup(rg_02_name)
   params: {
     metricAlerts_vm_cpu_percentage_name : metricAlerts_vm_cpu_percentage_name
     actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
-    p_location : p_location
-    p_severity : p_severity
-    p_enabled : p_enabled
-    p_scopes : p_scopes
-    p_evaluationFrequency : p_evaluationFrequency
-    p_windowSize : p_windowSize
-    p_threshold : p_threshold
-    p_targetResourceRegion : p_targetResourceRegion
+    vmCpuPercentageAlert_location : vmCpuPercentageAlert_location
+    vmCpuPercentageAlert_severity : vmCpuPercentageAlert_severity
+    vmCpuPercentageAlert_enabled : vmCpuPercentageAlert_enabled
+    vmCpuPercentageAlert_scopes : vmCpuPercentageAlert_scopes
+    vmCpuPercentageAlert_evaluationFrequency : vmCpuPercentageAlert_evaluationFrequency
+    vmCpuPercentageAlert_windowSize : vmCpuPercentageAlert_windowSize
+    vmCpuPercentageAlert_threshold : vmCpuPercentageAlert_threshold
+    vmCpuPercentageAlert_targetResourceRegion : vmCpuPercentageAlert_targetResourceRegion
   }
   dependsOn: [
     action_group
   ]
 }
+
+module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = {
+  name: 'monitoring_vm_system_state_module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    vmSysStateAlertName : vmSysStateAlertName
+    location : location
+    tags : tags
+    vmSysStateAlertDescription : vmSysStateAlertDescription
+    vmSysStateAlertSeverity : vmSysStateAlertSeverity
+    vmSysStateAlertEnabled : vmSysStateAlertEnabled
+    vmSysStateAlertScope_ids : vmSysStateAlertScope_ids
+    vmSysStateAlertEvalFrequency : vmSysStateAlertEvalFrequency
+    actiongroups_externalid : actiongroups_externalid
+    vmSysStateAlertQueryInterval : vmSysStateAlertQueryInterval
+  }
+  dependsOn: [
+    action_group
+  ]
+}
+

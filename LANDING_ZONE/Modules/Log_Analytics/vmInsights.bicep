@@ -30,3 +30,5 @@ resource solutionsVMInsights 'Microsoft.OperationsManagement/solutions@2015-11-0
     promotionCode: ''
   }
 }
+
+

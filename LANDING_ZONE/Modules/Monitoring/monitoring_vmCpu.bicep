@@ -4,14 +4,14 @@
 
 param metricAlerts_vm_cpu_percentage_name string
 param actiongroups_externalid string
-param p_location string
-param p_severity int
-param p_enabled bool
-param p_scopes array
-param p_evaluationFrequency string
-param p_windowSize string
-param p_threshold int
-param p_targetResourceRegion string
+param vmCpuPercentageAlert_location string
+param vmCpuPercentageAlert_severity int
+param vmCpuPercentageAlert_enabled bool
+param vmCpuPercentageAlert_scopes array
+param vmCpuPercentageAlert_evaluationFrequency string
+param vmCpuPercentageAlert_windowSize string
+param vmCpuPercentageAlert_threshold int
+param vmCpuPercentageAlert_targetResourceRegion string
 
 //===============End Params===============//
 
@@ -21,17 +21,17 @@ param p_targetResourceRegion string
 
 resource metricAlerts_vm_cpu_percentage_name_resource 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   name: metricAlerts_vm_cpu_percentage_name
-  location: p_location
+  location: vmCpuPercentageAlert_location
   properties: {
-    severity: p_severity
-    enabled: p_enabled
-    scopes: p_scopes
-    evaluationFrequency: p_evaluationFrequency
-    windowSize: p_windowSize
+    severity: vmCpuPercentageAlert_severity
+    enabled: vmCpuPercentageAlert_enabled
+    scopes: vmCpuPercentageAlert_scopes
+    evaluationFrequency: vmCpuPercentageAlert_evaluationFrequency
+    windowSize: vmCpuPercentageAlert_windowSize
     criteria: {
       allOf: [
         {
-          threshold: p_threshold
+          threshold: vmCpuPercentageAlert_threshold
           name: 'CPU_Metric'
           metricNamespace: 'microsoft.compute/virtualmachines'
           metricName: 'Percentage CPU'
@@ -44,7 +44,7 @@ resource metricAlerts_vm_cpu_percentage_name_resource 'Microsoft.Insights/metric
     }
     autoMitigate: true
     targetResourceType: 'microsoft.compute/virtualmachines'
-    targetResourceRegion: p_targetResourceRegion
+    targetResourceRegion: vmCpuPercentageAlert_targetResourceRegion
     actions: [
       {
         actionGroupId: actiongroups_externalid

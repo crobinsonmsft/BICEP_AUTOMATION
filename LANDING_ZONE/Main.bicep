@@ -701,7 +701,7 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
     vmSysStateAlertEnabled : vmSysStateAlertEnabled
     vmSysStateAlertScope_ids : vmSysStateAlertScope_ids
     vmSysStateAlertEvalFrequency : vmSysStateAlertEvalFrequency
-    actiongroups_externalid : actiongroups_externalid
+    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
     vmSysStateAlertQueryInterval : vmSysStateAlertQueryInterval
   }
   dependsOn: [

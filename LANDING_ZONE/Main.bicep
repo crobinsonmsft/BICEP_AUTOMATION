@@ -227,9 +227,6 @@ param vmSysStateAlertScope_ids string = subscription_scopes_array[env].subscript
 ])
 param vmSysStateAlertEvalFrequency string = 'PT5M'
 
-@description('The ID of the action group that is triggered when the alert is activated or deactivated')
-param actiongroups_externalid string
-
 @description('The amount of time since the last failure was encounterd')
 param vmSysStateAlertQueryInterval string = '2m'
 

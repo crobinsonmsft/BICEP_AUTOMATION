@@ -1,20 +1,20 @@
-//=========================================================================================//
-//=====THIS MAIN BICEP FILE CAN ORCHESTRATE THE DEPLOYMENT OF MULTIPLE AZURE SERVICES======//
-//=========================================================================================//
+//=====================================================================================================//
+//===========THIS MAIN BICEP FILE CAN ORCHESTRATE THE DEPLOYMENT OF MULTIPLE AZURE SERVICES============//
+//=====================================================================================================//
 
-targetScope = 'subscription'         // We will deploy these modules against our subscription
-                                    //can't use decorator here.  Can be managementgroup, subscription
-                                    //or resourcegroup
+targetScope = 'subscription'        // We will deploy these modules against our subscription
+                                    //Can't use decorator here.  Can be managementgroup, 
+                                    //subscription or resourcegroup
 
-//=========================================================================================//
-//================================== START OF PARAMETERS ==================================//
-//=========================================================================================//
+//=====================================================================================================//
+//========================================= START OF PARAMETERS =======================================//
+//=====================================================================================================//
 
 
-//===========================================//
-//==============Global Parameters============//
+//============================================================//
+//=======================Global Parameters====================//
 
-//Environment Parameter
+  //Environment Parameters
 
     @allowed([
       'Production'
@@ -25,7 +25,6 @@ targetScope = 'subscription'         // We will deploy these modules against our
     param env string = 'Development'  // Set this value
 
     //---------------------------------//
-
 
     param env_prefix object = {
       Production: {
@@ -39,70 +38,74 @@ targetScope = 'subscription'         // We will deploy these modules against our
       }
     }
 
-//============================================//
+  //Location
+
+    @allowed([
+      'eastus'
+      'eastus2'
+      'westus2'
+    ])
+    @description('Select the Azure region to deploy to')
+    //param location string = resourceGroup().location  //Will use the location of the resource group if resource group targeted. Comment this out if targeting subscription or mgt group
+    param location string = 'eastus'                    // Location that resource will be deployed to.  This location param will drive the entire deployment
+
+  //Tagging object
+
+    param tags object = {                               // Edit tags accordingly
+      Environment: env
+      Owner: 'Calvin Robinson'
+      org: 'ABC-Corp'
+    }
+
+//============================================================//
+//====================End Global Parameters===================//
 
 
-@allowed([
-  'eastus'
-  'eastus2'
-  'westus2'
-])
-@description('Select the Azure region to deploy to')
-//param location string = resourceGroup().location  //Will use the location of the resource group if resource group targeted. Comment this out if targeting subscription or mgt group
-param location string = 'eastus'                    // Location that resource will be deployed to.  This location param will drive the entire deployment
+//============================================================//
+//===================Begin Resource Parameters================//
 
-//Tagging object
+  //=======Resource Group Parameters=====//
 
-param tags object = {                               // Edit tags accordingly
-  Environment: env
-  Owner: 'Calvin Robinson'
-  org: 'ABC-Corp'
-}
+    var rg_01_name = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
+    var rg_02_name = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
+    var rg_03_name = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
 
-//===========================================//
-//===========End Global Parameters===========//
+//============================================================//
+//===================Networking Parameters====================//
 
-//=======Resource Group Parameters=====//
-
-//Define your resource group names here
-var rg_01_name = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
-var rg_02_name = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
-var rg_03_name = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
-
-//=================================================//
-//================Networking Parameters============//
-
-//======NSG Parameters======//
-//Define your NSG names here
-var nsg_bastion_name = 'NSG-BASTION-${env_prefix[env].envPrefix}-001'
-var nsg_private_name = 'NSG-PRIVATE-${env_prefix[env].envPrefix}-001'
-var nsg_public_name = 'NSG-PUBLIC-${env_prefix[env].envPrefix}-001'
+  //======NSG Parameters======//
+    
+    var nsg_bastion_name = 'NSG-BASTION-${env_prefix[env].envPrefix}-001'
+    var nsg_private_name = 'NSG-PRIVATE-${env_prefix[env].envPrefix}-001'
+    var nsg_public_name = 'NSG-PUBLIC-${env_prefix[env].envPrefix}-001'
 
 
-//=====VNET Parameters=====//
+  //=====VNET Parameters=====//
 
-//HUB VNET Parameters
-param vnet_hub_name string = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
-param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
+    //HUB VNET Parameters
+      param vnet_hub_name string = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
+      param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
-//HUB Subnet Parameters
-param subnet_hub_gw_name string = 'GatewaySubnet'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-param subnet_hub_fw_name string = 'AzureFirewallSubnet'                       //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
-param subnet_hub_bas_name string = 'AzureBastionSubnet'                   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-param subnet_hub_ss_name string = 'SharedServicesSubnet'                   //Name for Shared Services Subnet - Would host AD, DNS, etc.
+    //HUB Subnet Parameters
+      //Names
+        param subnet_hub_gw_name string = 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+        param subnet_hub_fw_name string = 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
+        param subnet_hub_bas_name string = 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
+        param subnet_hub_ss_name string = 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
 
-param subnet_hub_gw_adress_space string = '10.0.0.0/24'           //Subnet address space for Gateway Subnet
-param subnet_hub_fw_address_space string = '10.0.1.0/24'          //Subnet address space for Azure Firewall Subnet
-param subnet_hub_bas_address_space string = '10.0.2.0/24'         //Subnet address space for Bastion Subnet
-param subnet_hub_ss_address_space string = '10.0.3.0/24'           //Subnet address space for Public Subnet
+      //Addresses
+        param subnet_hub_gw_adress_space string = '10.0.0.0/24'   //Subnet address space for Gateway Subnet
+        param subnet_hub_fw_address_space string = '10.0.1.0/24'  //Subnet address space for Azure Firewall Subnet
+        param subnet_hub_bas_address_space string = '10.0.2.0/24' //Subnet address space for Bastion Subnet
+        param subnet_hub_ss_address_space string = '10.0.3.0/24'  //Subnet address space for Public Subnet
 
-//SPOKE 001 VNET Parameters
-param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
-param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
+    //SPOKE 001 VNET Parameters
+      param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
+      param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
 
-//SPOKE 001 Subnet Parameters
-var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
+    //SPOKE 001 Subnet Parameters
+      var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+      param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
 
 
 //=======Peering Parameters========//
@@ -138,12 +141,12 @@ param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP
 var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
 
 
-//=====================================================//
-//================Monitoring and Alerting==============//
+//============================================================//
+//===================Begin Monitoring Parameters================//
 
 param subscription_scopes_array object = {
   Production: {
-    subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'    //Visual Studio Enterprise Subscription
+    subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
   }
   Development: {
     subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
@@ -617,7 +620,7 @@ param nicName string = '${vmName}-nic'
   }
 
 //===========================================//
-//=======Start of Monitoring and Alerting Modules=======//      //Commented out to isolate testing to networking
+//=======Start of Monitoring and Alerting Modules=======//  
 //===========================================//
 
 //Action Group to direct SMTP and SMS alerts to

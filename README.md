@@ -50,7 +50,7 @@ az deployment group create --resource-group [resource_group_name] --template-fil
 ## To run it against a subscription (to deploy a landing zone for example) do the following:
 
 ```
-az deployment sub create --name 'ExampleDeployment'$(date +"%d-%b-%Y") --location eastus --template-file .\Main.bicep
+az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep --parameters emailAddress="['somesmtpaddress.com']" sms="['somesmsnumber', 'somesmsnumber2']"
 ```
 
 ### See acceptable locations for current subscription
@@ -61,7 +61,7 @@ az account list-locations
 
 ### Run against subscription using parameter file
 ```
-az deployment sub create --name 'ExampleDeployment'$(date +"%d-%b-%Y") --location eastus --template-file .\Main.bicep --parameters .\parameterfilename.json
+az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep --parameters .\parameterfilename.json
 ```
 
 ### To Pass Inline parameters

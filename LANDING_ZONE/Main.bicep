@@ -66,9 +66,9 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
   //=======Resource Group Parameters=====//
 
-    var rg_01_name = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
-    var rg_02_name = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
-    var rg_03_name = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
+    param rg_01_name string = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
+    param rg_02_name string = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
+    param rg_03_name string = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
 
 //============================================================//
 //===================Networking Parameters====================//
@@ -229,9 +229,24 @@ param vmSysStateAlertScope_ids string = subscription_scopes_array[env].subscript
   'PT1H'
 ])
 param vmSysStateAlertEvalFrequency string = 'PT5M'
+param vmSysStateAlertwindowSize string = 'PT5M'
+param vmSysStateAlertQueryTimeRange string = 'P2D'
 
 @description('The amount of time since the last failure was encounterd')
 param vmSysStateAlertQueryInterval string = '2m'
+
+//==========VM Memory Alerting Parameters=============//
+param metricAlerts_vm_memory_percentage_name string = 'VM Memory - Average Usage Exceeds 80 Percent'
+param actiongroups_externalid string
+param vmMemoryPercentageAlert_percentageVal string = '20' //Percentage threshold which would trigger an alert
+param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_percentage_name}.  Looks at the average usage and issues an alert if value exceeds 80%'
+param vmMemoryPercentageAlert_severity int = 0
+param vmMemoryPercentageAlert_enabled bool = true
+param vmMemoryPercentageAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}']
+param vmMemoryPercentageAlert_evaluationFrequency string = 'PT5M'
+param vmMemoryPercentageAlert_windowSize string = 'PT5M'
+param vmMemoryPercentageAlert_threshold int = 1
+param vmMemoryPercentageAlert_overrideQueryTimeRange string = 'P2D'
 
 //====================================================//
 //==========Backup and Recovery Parameters============//
@@ -588,40 +603,12 @@ param nicName string = '${vmName}-nic'
   }
   */
 //===========================================//
-//====End  of Backup and Recovery Modules====//
+//====End of Backup and Recovery Modules=====//
 //===========================================//
 
-//===========================================//
-//=======Start of Compute Modules=======//
-//===========================================//
-
-
-  module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
-    name: 'vm_001-module'
-    scope: resourceGroup(rg_03_name)
-    
-    params: {
-      adminUsername: adminUsername
-      adminpass: adminpass
-      vmName: vmName
-      storageAccountName: storageAccountName
-      OSVersion: OSVersion
-      vmSize: vmSize
-      nicName: nicName
-      tags: tags
-      location: location
-      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
-      workspace_id2 : law.outputs.workspaceIdOutput
-      workspace_key: law.outputs.workspaceKeyOutput
-    }
-    dependsOn: [
-      vnet_spoke_001
-    ]
-  }
-
-//===========================================//
-//=======Start of Monitoring and Alerting Modules=======//  
-//===========================================//
+//=====================================================//
+//=======Start of Monitoring and Alerting Modules======//  
+//=====================================================//
 
 //Action Group to direct SMTP and SMS alerts to
 module action_group 'Modules/Monitoring/action_group.bicep' = {
@@ -649,7 +636,7 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
     workspaceName: workspaceName
   }
   dependsOn: [
-      rg
+      action_group
     ]
 }
 
@@ -685,7 +672,7 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
     vmCpuPercentageAlert_targetResourceRegion : vmCpuPercentageAlert_targetResourceRegion
   }
   dependsOn: [
-    action_group
+    vmInsights
   ]
 }
 
@@ -700,12 +687,72 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
     vmSysStateAlertSeverity : vmSysStateAlertSeverity
     vmSysStateAlertEnabled : vmSysStateAlertEnabled
     vmSysStateAlertScope_ids : vmSysStateAlertScope_ids
+    vmSysStateAlertwindowSize : vmSysStateAlertwindowSize
     vmSysStateAlertEvalFrequency : vmSysStateAlertEvalFrequency
+    vmSysStateAlertQueryTimeRange : vmSysStateAlertQueryTimeRange
     actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
     vmSysStateAlertQueryInterval : vmSysStateAlertQueryInterval
   }
   dependsOn: [
-    action_group
+    vmInsights
   ]
 }
+
+module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
+  name: 'monitoring_vm_memory_module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    location : location
+    tags : tags
+    metricAlerts_vm_memory_percentage_name : metricAlerts_vm_memory_percentage_name
+    vmMemoryPercentageAlert_percentageVal : vmMemoryPercentageAlert_percentageVal
+    actiongroups_externalid : actiongroups_externalid
+    vmMemoryPercentageAlert_description : vmMemoryPercentageAlert_description
+    vmMemoryPercentageAlert_severity : vmMemoryPercentageAlert_severity
+    vmMemoryPercentageAlert_enabled : vmMemoryPercentageAlert_enabled
+    vmMemoryPercentageAlert_scopes : vmMemoryPercentageAlert_scopes
+    vmMemoryPercentageAlert_evaluationFrequency : vmMemoryPercentageAlert_evaluationFrequency
+    vmMemoryPercentageAlert_windowSize : vmMemoryPercentageAlert_windowSize
+    vmMemoryPercentageAlert_threshold : vmMemoryPercentageAlert_threshold
+    vmMemoryPercentageAlert_overrideQueryTimeRange : vmMemoryPercentageAlert_overrideQueryTimeRange
+  }
+  dependsOn: [
+    vmInsights
+  ]
+}
+
+
+//==============================================//
+//====End of Monitoring and Alerting Modules====//
+//==============================================//
+
+//===========================================//
+//=======Start of Compute Modules============//
+//===========================================//
+
+
+  module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
+    name: 'vm_001-module'
+    scope: resourceGroup(rg_03_name)
+    
+    params: {
+      adminUsername: adminUsername
+      adminpass: adminpass
+      vmName: vmName
+      storageAccountName: storageAccountName
+      OSVersion: OSVersion
+      vmSize: vmSize
+      nicName: nicName
+      tags: tags
+      location: location
+      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      workspace_id2 : law.outputs.workspaceIdOutput
+      workspace_key: law.outputs.workspaceKeyOutput
+    }
+    dependsOn: [
+      vmInsights
+    ]
+  }
+  
+
 

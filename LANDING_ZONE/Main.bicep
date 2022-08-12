@@ -281,7 +281,7 @@ param adminUsername string = 'azureadmin'
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'VM-${env_prefix[env].envPrefix}-004'
+param vmName string = 'VM-${env_prefix[env].envPrefix}-001'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')

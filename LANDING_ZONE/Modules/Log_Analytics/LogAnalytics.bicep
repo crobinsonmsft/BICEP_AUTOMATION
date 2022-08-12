@@ -37,7 +37,7 @@ resource table 'Microsoft.OperationalInsights/workspaces/tables@2021-12-01-previ
   }
 }
 
-
+//Create Data Sources for log collection from VMs
 resource windowsEventsSystemDataSource 'Microsoft.OperationalInsights/workspaces/dataSources@2020-08-01' = {
   parent: workspace_
   name: 'WindowsEventsSystem'

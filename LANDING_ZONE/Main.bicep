@@ -237,7 +237,6 @@ param vmSysStateAlertQueryInterval string = '2m'
 
 //==========VM Memory Alerting Parameters=============//
 param metricAlerts_vm_memory_percentage_name string = 'VM Memory - Average Usage Exceeds 80 Percent'
-param actiongroups_externalid string
 param vmMemoryPercentageAlert_percentageVal string = '20' //Percentage threshold which would trigger an alert
 param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_percentage_name}.  Looks at the average usage and issues an alert if value exceeds 80%'
 param vmMemoryPercentageAlert_severity int = 0
@@ -281,7 +280,7 @@ param adminUsername string = 'azureadmin'
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'VM-${env_prefix[env].envPrefix}-001'
+param vmName string = 'VM-${env_prefix[env].envPrefix}-006'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
@@ -706,7 +705,7 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
     tags : tags
     metricAlerts_vm_memory_percentage_name : metricAlerts_vm_memory_percentage_name
     vmMemoryPercentageAlert_percentageVal : vmMemoryPercentageAlert_percentageVal
-    actiongroups_externalid : actiongroups_externalid
+    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
     vmMemoryPercentageAlert_description : vmMemoryPercentageAlert_description
     vmMemoryPercentageAlert_severity : vmMemoryPercentageAlert_severity
     vmMemoryPercentageAlert_enabled : vmMemoryPercentageAlert_enabled
@@ -746,11 +745,12 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
       tags: tags
       location: location
       nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      workspace_id : law.outputs.workspace_id
       workspace_id2 : law.outputs.workspaceIdOutput
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      vmInsights
+      monitoring_vm_memory
     ]
   }
   

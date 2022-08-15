@@ -13,6 +13,7 @@ param vmName string
 param storageAccountName string
 param nicName string
 param nicSubnetId string
+param workspace_id string
 param workspace_id2 string
 param workspace_key string
 //param dnsLabelPrefixvm string
@@ -156,5 +157,28 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
   }
 }
 
-
-//output hostname string = pip.properties.dnsSettings.fqdn
+resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-preview' = {
+  scope: vm_001
+  name: 'vm_diagnostic_settings_01'
+  properties: {
+    workspaceId: workspace_id
+    logs: [
+      /*
+      {
+        category: 'AuditEvent'
+        enabled: true
+        retentionPolicy: {
+          days: 90
+          enabled: true
+        }
+      }
+      */
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}

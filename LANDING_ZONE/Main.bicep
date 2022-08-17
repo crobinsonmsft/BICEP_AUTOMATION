@@ -247,6 +247,7 @@ param vmSysStateAlertQueryInterval string = '2m'    //Lastcall value.  How long 
 
 
 //==========VM Memory Alerting Parameters=============//
+
 param metricAlerts_vm_memory_percentage_name string = 'VM Memory - Average Usage Exceeds ${vmMemoryPercentageAlert_percentageVal} percent'
 param vmMemoryPercentageAlert_percentageVal string = '5' //Percentage threshold which would trigger an alert
 param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_percentage_name}.  Looks at the average usage and issues an alert if value exceeds ${vmMemoryPercentageAlert_percentageVal} percent'

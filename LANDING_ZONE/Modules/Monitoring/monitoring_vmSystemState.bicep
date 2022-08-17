@@ -14,6 +14,7 @@ param vmSysStateAlertEvalFrequency string
 param vmSysStateAlertQueryTimeRange string
 param actiongroups_externalid string
 param vmSysStateAlertQueryInterval string
+param vmSysStateAlert_timeGenerated string
 //===============End Params===============//
 
 
@@ -40,7 +41,7 @@ resource vm_system_state_resource 'microsoft.insights/scheduledqueryrules@2021-0
     criteria: {
       allOf: [
         {
-          query: '// Not reporting VMs \n// VMs that have not reported a heartbeat in the last 2 minutes. \n// To create an alert for this query, click \'+ New alert rule\'\nHeartbeat \n| where TimeGenerated > ago(24h)\n| summarize LastCall = max(TimeGenerated) by Computer, _ResourceId\n| where LastCall < ago(${vmSysStateAlertQueryInterval})\n\n'
+          query: '// Not reporting VMs \n// VMs that have not reported a heartbeat in the last 2 minutes. \n// To create an alert for this query, click \'+ New alert rule\'\nHeartbeat \n| where TimeGenerated > ago(${vmSysStateAlert_timeGenerated})\n| summarize LastCall = max(TimeGenerated) by Computer, _ResourceId\n| where LastCall < ago(${vmSysStateAlertQueryInterval})\n\n'
           timeAggregation: 'Count'
           dimensions: []
           operator: 'GreaterThan'

@@ -41,6 +41,7 @@ resource table 'Microsoft.OperationalInsights/workspaces/tables@2021-12-01-previ
 resource windowsEventsSystemDataSource 'Microsoft.OperationalInsights/workspaces/dataSources@2020-08-01' = {
   parent: workspace_
   name: 'WindowsEventsSystem'
+  tags: tags
   kind: 'WindowsEvent'
   properties: {
     eventLogName: 'System'
@@ -61,6 +62,7 @@ resource windowsEventsSystemDataSource 'Microsoft.OperationalInsights/workspaces
 resource WindowsEventApplicationDataSource 'Microsoft.OperationalInsights/workspaces/dataSources@2020-08-01' = {
   parent: workspace_
   name: 'WindowsEventsApplication'
+  tags: tags
   kind: 'WindowsEvent'
   properties: {
     eventLogName: 'Application'
@@ -82,6 +84,7 @@ resource WindowsEventApplicationDataSource 'Microsoft.OperationalInsights/worksp
 resource syslogKernDataSource 'Microsoft.OperationalInsights/workspaces/datasources@2020-08-01' = {
   parent: workspace_
   name: 'SyslogKern'
+  tags: tags
   kind: 'LinuxSyslog'
   properties: {
     syslogName: 'kern'
@@ -117,6 +120,7 @@ resource syslogKernDataSource 'Microsoft.OperationalInsights/workspaces/datasour
 resource syslogDaemonDataSource 'Microsoft.OperationalInsights/workspaces/datasources@2020-08-01' = {
   parent: workspace_
   name: 'SyslogDaemon'
+  tags: tags
   kind: 'LinuxSyslog'
   properties: {
     syslogName: 'daemon'
@@ -143,6 +147,7 @@ resource syslogDaemonDataSource 'Microsoft.OperationalInsights/workspaces/dataso
 resource syslogCollectionDataSource 'Microsoft.OperationalInsights/workspaces/datasources@2020-08-01' = {
   parent: workspace_
   name: 'SyslogCollection'
+  tags: tags
   kind: 'LinuxSyslogCollection'
   properties: {
     state: 'Enabled'

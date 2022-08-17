@@ -193,7 +193,16 @@ param vmCpuPercentageAlert_scopes array = [
   subscription_scopes_array[env].subscription
 ]
 param vmCpuPercentageAlert_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
-param vmCpuPercentageAlert_windowSize string = 'PT15M'             //The period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold
+
+@allowed([
+  'PT1M'
+  'PT5M'
+  'PT15M'
+  'PT30M'
+  'PT1H'
+])
+param vmCpuPercentageAlert_windowSize string = 'PT5M'             //The period of time (in ISO 8601 duration format) that is used to monitor alert activity based on the threshold
+                                                                  //WindowSize of 1 minutes is not supported. Supported granularities are: 5, 10, 15, 30, 45, 60, 120, 180, 240, 300, 360, 1440, 2880
 param vmCpuPercentageAlert_threshold int = 70
 param vmCpuPercentageAlert_targetResourceRegion string = location
 
@@ -228,22 +237,43 @@ param vmSysStateAlertScope_ids string = subscription_scopes_array[env].subscript
   'PT30M'
   'PT1H'
 ])
-param vmSysStateAlertEvalFrequency string = 'PT5M'
+param vmSysStateAlertEvalFrequency string = 'PT5M'  //how often the metric alert is evaluated represented in ISO 8601 duration format
 param vmSysStateAlertwindowSize string = 'PT5M'
 param vmSysStateAlertQueryTimeRange string = 'P2D'
 
 @description('The amount of time since the last failure was encounterd')
-param vmSysStateAlertQueryInterval string = '2m'
+param vmSysStateAlert_timeGenerated string = '5m'
+param vmSysStateAlertQueryInterval string = '2m'    //Lastcall value.  How long ago did the VM stop sending heartbeats?
+
 
 //==========VM Memory Alerting Parameters=============//
-param metricAlerts_vm_memory_percentage_name string = 'VM Memory - Average Usage Exceeds 80 Percent'
-param vmMemoryPercentageAlert_percentageVal string = '20' //Percentage threshold which would trigger an alert
-param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_percentage_name}.  Looks at the average usage and issues an alert if value exceeds 80%'
-param vmMemoryPercentageAlert_severity int = 0
-param vmMemoryPercentageAlert_enabled bool = true
-param vmMemoryPercentageAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}']
-param vmMemoryPercentageAlert_evaluationFrequency string = 'PT5M'
-param vmMemoryPercentageAlert_windowSize string = 'PT5M'
+param metricAlerts_vm_memory_percentage_name string = 'VM Memory - Average Usage Exceeds ${vmMemoryPercentageAlert_percentageVal} percent'
+param vmMemoryPercentageAlert_percentageVal string = '5' //Percentage threshold which would trigger an alert
+param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_percentage_name}.  Looks at the average usage and issues an alert if value exceeds ${vmMemoryPercentageAlert_percentageVal} percent'
+
+@description('Severity of alert {0,1,2,3,4}')
+@allowed([
+  0
+  1
+  2
+  3
+  4
+])
+param vmMemoryPercentageAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
+param vmMemoryPercentageAlert_enabled bool = true //Is alert enabled or disabled?  'True' indicates that the alert is enabled
+param vmMemoryPercentageAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'] //What area of the Azure hierarchy are we targeting
+param vmMemoryPercentageAlert_evaluationFrequency string = 'PT5M' //how often the metric alert is evaluated represented in ISO 8601 duration format
+
+@allowed([
+  'PT5M'
+  'PT10M'
+  'PT15M'
+  'PT30M'
+  'PT45M'
+  'PT1H'
+])
+param vmMemoryPercentageAlert_windowSize string = 'PT5M' //Period of time used to monitor alert activity based on the threshold. Must be between one minute and one day. ISO 8601 duration format.
+                                                         //WindowSize of 1 minutes is not supported. Supported granularities are: 5, 10, 15, 30, 45, 60, 120, 180, 240, 300, 360, 1440, 2880
 param vmMemoryPercentageAlert_threshold int = 1
 param vmMemoryPercentageAlert_overrideQueryTimeRange string = 'P2D'
 
@@ -280,7 +310,7 @@ param adminUsername string = 'azureadmin'
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'VM-${env_prefix[env].envPrefix}-006'
+param vmName string = 'VM-${env_prefix[env].envPrefix}-001'
 
 /*
 @description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
@@ -691,11 +721,13 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
     vmSysStateAlertQueryTimeRange : vmSysStateAlertQueryTimeRange
     actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
     vmSysStateAlertQueryInterval : vmSysStateAlertQueryInterval
+    vmSysStateAlert_timeGenerated : vmSysStateAlert_timeGenerated
   }
   dependsOn: [
     vmInsights
   ]
 }
+
 
 module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
   name: 'monitoring_vm_memory_module'
@@ -719,7 +751,6 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
     vmInsights
   ]
 }
-
 
 //==============================================//
 //====End of Monitoring and Alerting Modules====//
@@ -750,7 +781,8 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      monitoring_vm_memory
+      //monitoring_vm_memory
+      vmInsights
     ]
   }
   

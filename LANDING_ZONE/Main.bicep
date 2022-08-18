@@ -278,6 +278,18 @@ param vmMemoryPercentageAlert_windowSize string = 'PT5M' //Period of time used t
 param vmMemoryPercentageAlert_threshold int = 1
 param vmMemoryPercentageAlert_overrideQueryTimeRange string = 'P2D'
 
+
+//=======VM Disk Utilization Parameters===//
+
+param vmDiskUtilizationAlert__name string = 'Less than 10 Percent Free Disk Space Remaining on Drive'
+param vmDiskUtilizationAlert_description string = 'Less than 10 Percent Free Disk Space Remaining on Drive'
+param vmDiskUtilizationAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
+param vmDiskUtilizationAlert_enabled bool = true
+param vmDiskUtilizationAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}']
+param vmDiskUtilizationAlert_evaluationFrequency string = 'PT5M'
+param vmDiskUtilizationAlert_windowSize string = 'PT5M'
+param vmDiskUtilizationAlert_percentageVal string = '10' //The remaining percentage that when breached, will signal an alert
+
 //====================================================//
 //==========Backup and Recovery Parameters============//
 
@@ -747,6 +759,28 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
     vmMemoryPercentageAlert_windowSize : vmMemoryPercentageAlert_windowSize
     vmMemoryPercentageAlert_threshold : vmMemoryPercentageAlert_threshold
     vmMemoryPercentageAlert_overrideQueryTimeRange : vmMemoryPercentageAlert_overrideQueryTimeRange
+  }
+  dependsOn: [
+    vmInsights
+  ]
+}
+
+
+module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep' = {
+  name: 'monitoring_vm_disk_module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    location : location
+    tags : tags
+    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
+    vmDiskUtilizationAlert__name : vmDiskUtilizationAlert__name
+    vmDiskUtilizationAlert_description : vmDiskUtilizationAlert_description
+    vmDiskUtilizationAlert_severity : vmDiskUtilizationAlert_severity
+    vmDiskUtilizationAlert_enabled : vmDiskUtilizationAlert_enabled
+    vmDiskUtilizationAlert_scopes : vmDiskUtilizationAlert_scopes
+    vmDiskUtilizationAlert_evaluationFrequency : vmDiskUtilizationAlert_evaluationFrequency
+    vmDiskUtilizationAlert_windowSize : vmDiskUtilizationAlert_windowSize
+    vmDiskUtilizationAlert_percentageVal : vmDiskUtilizationAlert_percentageVal
   }
   dependsOn: [
     vmInsights

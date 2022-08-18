@@ -1,0 +1,63 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "scheduledqueryrules_Less_than_10_Percent_Free_Disk_Space_Remaining_on_Drive_name": {
+            "defaultValue": "Less than 10 Percent Free Disk Space Remaining on Drive",
+            "type": "String"
+        },
+        "virtualMachines_VM_DEV_001_externalid": {
+            "defaultValue": "/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a/resourceGroups/RG-RESOURCE-DEV-001/providers/Microsoft.Compute/virtualMachines/VM-DEV-001",
+            "type": "String"
+        },
+        "actiongroups_admins_externalid": {
+            "defaultValue": "/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a/resourceGroups/rg-management-dev-001/providers/microsoft.insights/actiongroups/admins",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.insights/scheduledqueryrules",
+            "apiVersion": "2021-08-01",
+            "name": "[parameters('scheduledqueryrules_Less_than_10_Percent_Free_Disk_Space_Remaining_on_Drive_name')]",
+            "location": "eastus",
+            "properties": {
+                "displayName": "[parameters('scheduledqueryrules_Less_than_10_Percent_Free_Disk_Space_Remaining_on_Drive_name')]",
+                "description": "[parameters('scheduledqueryrules_Less_than_10_Percent_Free_Disk_Space_Remaining_on_Drive_name')]",
+                "severity": 0,
+                "enabled": true,
+                "evaluationFrequency": "PT5M",
+                "scopes": [
+                    "[parameters('virtualMachines_VM_DEV_001_externalid')]"
+                ],
+                "targetResourceTypes": [
+                    "Microsoft.Compute/virtualMachines"
+                ],
+                "windowSize": "PT5M",
+                "criteria": {
+                    "allOf": [
+                        {
+                            "query": "let PercentSpace = 10;\nPerf\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\"\nor ObjectName == \"Logical Disk\" and CounterName == \"% Free Space\"\n| summarize FreeSpace = avg(CounterValue) by Computer, InstanceName\n| where InstanceName contains \":\" or InstanceName == \"/\"\n| where FreeSpace < PercentSpace\n",
+                            "timeAggregation": "Count",
+                            "dimensions": [],
+                            "operator": "GreaterThan",
+                            "threshold": 0,
+                            "failingPeriods": {
+                                "numberOfEvaluationPeriods": 1,
+                                "minFailingPeriodsToAlert": 1
+                            }
+                        }
+                    ]
+                },
+                "autoMitigate": true,
+                "actions": {
+                    "actionGroups": [
+                        "[parameters('actiongroups_admins_externalid')]"
+                    ],
+                    "customProperties": {}
+                }
+            }
+        }
+    ]
+}

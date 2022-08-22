@@ -157,4 +157,6 @@ resource syslogCollectionDataSource 'Microsoft.OperationalInsights/workspaces/da
 
 output workspace_id string = workspace_.id
 output workspaceIdOutput string = reference(workspace_.id, '2015-11-01-preview').customerId
+
+#disable-next-line outputs-should-not-contain-secrets
 output workspaceKeyOutput string = listKeys(workspace_.id, '2015-11-01-preview').primarySharedKey

@@ -5,18 +5,8 @@
       "env": {
         "value": "Sandbox"
       },
-      "env_prefix": {
-        "value" : "SBX"
-      },
-      "location": {
+        "location": {
         "value": "eastus"
-      },
-      "tags": {
-        "value" : {
-            "Environment" : "[parameters('environment')]",
-            "Owner" : "Calvin Robinson",
-            "Organization" : "Department of Finance"
-        }
       }
     }
   }

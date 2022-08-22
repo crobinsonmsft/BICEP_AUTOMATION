@@ -11,7 +11,7 @@ param vmDiskUtilizationAlert__name string = 'Less than 10 Percent Free Disk Spac
 param vmDiskUtilizationAlert_description string
 param vmDiskUtilizationAlert_severity int
 param vmDiskUtilizationAlert_enabled bool
-param vmDiskUtilizationAlert_scopes array
+param vmDiskUtilizationAlert_scopes string
 param vmDiskUtilizationAlert_evaluationFrequency string
 param vmDiskUtilizationAlert_windowSize string
 param vmDiskUtilizationAlert_percentageVal string //The remaining percentage that when breached, will signal an alert

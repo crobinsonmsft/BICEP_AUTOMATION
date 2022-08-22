@@ -285,7 +285,7 @@ param vmDiskUtilizationAlert__name string = 'Less than 10 Percent Free Disk Spac
 param vmDiskUtilizationAlert_description string = 'Less than 10 Percent Free Disk Space Remaining on Drive'
 param vmDiskUtilizationAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmDiskUtilizationAlert_enabled bool = true
-param vmDiskUtilizationAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}']
+param vmDiskUtilizationAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
 param vmDiskUtilizationAlert_evaluationFrequency string = 'PT5M'
 param vmDiskUtilizationAlert_windowSize string = 'PT5M'
 param vmDiskUtilizationAlert_percentageVal string = '10' //The remaining percentage that when breached, will signal an alert
@@ -698,6 +698,7 @@ module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
     ]
 }
 
+// VM Monitoring CPU
 module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
   name: 'monitoring_cpu_module'
   scope: resourceGroup(rg_02_name)
@@ -718,6 +719,7 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
   ]
 }
 
+// VM Monitoring System State
 module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = {
   name: 'monitoring_vm_system_state_module'
   scope: resourceGroup(rg_02_name)
@@ -741,7 +743,7 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
   ]
 }
 
-
+// VM Monitoring VM Memory
 module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
   name: 'monitoring_vm_memory_module'
   scope: resourceGroup(rg_02_name)

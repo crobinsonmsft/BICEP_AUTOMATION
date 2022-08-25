@@ -8,7 +8,7 @@ param location string
 param vmMemoryPercentageAlert_description string
 param vmMemoryPercentageAlert_severity int
 param vmMemoryPercentageAlert_enabled bool
-param vmMemoryPercentageAlert_scopes array
+param vmMemoryPercentageAlert_scopes string
 param vmMemoryPercentageAlert_evaluationFrequency string
 param vmMemoryPercentageAlert_windowSize string
 param vmMemoryPercentageAlert_threshold int
@@ -33,7 +33,9 @@ resource metricAlerts_vm_memory_percentage_name_resource 'microsoft.insights/sch
     severity: vmMemoryPercentageAlert_severity
     enabled: vmMemoryPercentageAlert_enabled
     evaluationFrequency: vmMemoryPercentageAlert_evaluationFrequency
-    scopes: vmMemoryPercentageAlert_scopes
+    scopes: [
+      vmMemoryPercentageAlert_scopes
+    ]
     targetResourceTypes: [
       'Microsoft.Compute/virtualMachines'
     ]

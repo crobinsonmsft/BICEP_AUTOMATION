@@ -29,6 +29,9 @@ resource stg 'Microsoft.Storage/storageAccounts@2021-09-01' = {
     name: 'Standard_LRS'
   }
   kind: 'Storage'
+  properties: {
+    allowBlobPublicAccess: false
+  }
 }
 
 //Create the NIC

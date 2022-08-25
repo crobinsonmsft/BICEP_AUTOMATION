@@ -133,7 +133,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 //Public IP Address Parameters
 var publicIPAddressName = 'PUB-IP-${env_prefix[env].envPrefix}-BASTION'
 param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
-param publicIPAllocationMethod string = 'Static' //Should be Static for Bastion Usage
+param publicIPAllocationMethod string = 'Static' //Should ALWAYS be Static for Bastion Usage
 param publicIPAddressVersion string = 'IPv4'
 param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
@@ -189,9 +189,8 @@ param vmCpuPercentageAlert_location string = 'global'        //Region alert will
 param vmCpuPercentageAlert_severity int = 2                          //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmCpuPercentageAlert_enabled bool = true
 
-param vmCpuPercentageAlert_scopes array = [
-  subscription_scopes_array[env].subscription
-]
+param vmCpuPercentageAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
+//[  subscription_scopes_array[env].subscription]
 param vmCpuPercentageAlert_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
 
 @allowed([
@@ -227,7 +226,7 @@ param vmSysStateAlertSeverity int = 0   //Severity Level {0-Critical, 1-Error, 2
 
 @description('Enable or Disable the VM State Alert')
 param vmSysStateAlertEnabled bool = true
-param vmSysStateAlertScope_ids string = subscription_scopes_array[env].subscription
+param vmSysStateAlertScope_ids string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
 
 @description('how often the metric alert is evaluated represented in ISO 8601 duration format')
 @allowed([
@@ -262,7 +261,7 @@ param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_per
 ])
 param vmMemoryPercentageAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmMemoryPercentageAlert_enabled bool = true //Is alert enabled or disabled?  'True' indicates that the alert is enabled
-param vmMemoryPercentageAlert_scopes array = ['${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'] //What area of the Azure hierarchy are we targeting
+param vmMemoryPercentageAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}' //'${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}' //What area of the Azure hierarchy are we targeting
 param vmMemoryPercentageAlert_evaluationFrequency string = 'PT5M' //how often the metric alert is evaluated represented in ISO 8601 duration format
 
 @allowed([
@@ -822,6 +821,4 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       vmInsights
     ]
   }
-  
-
 

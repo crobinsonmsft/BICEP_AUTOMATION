@@ -7,7 +7,7 @@ param actiongroups_externalid string
 param vmCpuPercentageAlert_location string
 param vmCpuPercentageAlert_severity int
 param vmCpuPercentageAlert_enabled bool
-param vmCpuPercentageAlert_scopes array
+param vmCpuPercentageAlert_scopes string
 param vmCpuPercentageAlert_evaluationFrequency string
 param vmCpuPercentageAlert_windowSize string
 param vmCpuPercentageAlert_threshold int
@@ -25,7 +25,9 @@ resource metricAlerts_vm_cpu_percentage_name_resource 'Microsoft.Insights/metric
   properties: {
     severity: vmCpuPercentageAlert_severity
     enabled: vmCpuPercentageAlert_enabled
-    scopes: vmCpuPercentageAlert_scopes
+    scopes: [
+      vmCpuPercentageAlert_scopes
+    ]
     evaluationFrequency: vmCpuPercentageAlert_evaluationFrequency
     windowSize: vmCpuPercentageAlert_windowSize
     criteria: {

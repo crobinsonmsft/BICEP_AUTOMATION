@@ -18,9 +18,21 @@ param workspace_id2 string
 param workspace_key string
 //param dnsLabelPrefixvm string
 
+/*
+If you want to use a loop to create a specific number of resources, you can leverage the range() function, which creates an array of numbers.
+
+In the following example, we use the range()function to create multiple instances of a virtual machine resource type:
+
+resource vmName_resource 'Microsoft.Compute/virtualMachines@2020-06-01' = [for i in range(0, vmCount): {
+  name: '${vmName}${i}'
+  location: location
+  properties: {
+*/
+
+
 //===============End Params===============//
 
-//Create the Storage Account
+//Create the Storage Account for boot diagnostics
 resource stg 'Microsoft.Storage/storageAccounts@2021-09-01' = {
   name: storageAccountName
   location: location
@@ -45,13 +57,14 @@ resource nic 'Microsoft.Network/networkInterfaces@2022-01-01' = {
         name: 'ipconfig1'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
+          // Commented out the assignment of a public IP because we should be using Bastion
           /*
           publicIPAddress: {
             id: pip.id
           }
           */
           subnet: {
-            id: nicSubnetId 
+            id: nicSubnetId
           }
         }
       }
@@ -77,7 +90,6 @@ resource vm_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       imageReference: {
         publisher: 'MicrosoftWindowsServer'
         offer: 'WindowsServer'
-
         sku: OSVersion
         version: 'latest'
       }
@@ -112,6 +124,8 @@ resource vm_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
 }
 
 output vm_001_id string = vm_001.id
+
+/*
 
 //=========================//
 //Onboard to VM Insights
@@ -160,6 +174,8 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
   }
 }
 
+*/
+
 resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-preview' = {
   scope: vm_001
   name: 'vm_diagnostic_settings_01'
@@ -176,6 +192,7 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
         }
       }
       */
+
     ]
     metrics: [
       {

@@ -87,25 +87,27 @@ targetScope = 'subscription'        // We will deploy these modules against our 
       param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
     //HUB Subnet Parameters
-      //Names
-        param subnet_hub_gw_name string = 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-        param subnet_hub_fw_name string = 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
-        param subnet_hub_bas_name string = 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-        param subnet_hub_ss_name string = 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
+        //Names
+          param subnet_hub_gw_name string = 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+          param subnet_hub_fw_name string = 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
+          param subnet_hub_bas_name string = 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
+          param subnet_hub_ss_name string = 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
 
-      //Addresses
-        param subnet_hub_gw_adress_space string = '10.0.0.0/24'   //Subnet address space for Gateway Subnet
-        param subnet_hub_fw_address_space string = '10.0.1.0/24'  //Subnet address space for Azure Firewall Subnet
-        param subnet_hub_bas_address_space string = '10.0.2.0/24' //Subnet address space for Bastion Subnet
-        param subnet_hub_ss_address_space string = '10.0.3.0/24'  //Subnet address space for Public Subnet
+        //Addresses
+          param subnet_hub_gw_adress_space string = '10.0.0.0/24'   //Subnet address space for Gateway Subnet
+          param subnet_hub_fw_address_space string = '10.0.1.0/24'  //Subnet address space for Azure Firewall Subnet
+          param subnet_hub_bas_address_space string = '10.0.2.0/24' //Subnet address space for Bastion Subnet
+          param subnet_hub_ss_address_space string = '10.0.3.0/24'  //Subnet address space for Public Subnet
 
     //SPOKE 001 VNET Parameters
       param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
       param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
 
-    //SPOKE 001 Subnet Parameters
-      var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'                             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-      param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for Gateway Subnet
+        //SPOKE 001 Subnet Parameters
+          var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+          var subnet_spoke_001_test_name = 'TEST-VMs-${env_prefix[env].envPrefix}-001'  
+          param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for the spoke
+          param subnet_spoke_001_test_address_space string = '10.1.1.0/24'           //Subnet address space for the test spoke
 
 
 //=======Peering Parameters========//
@@ -324,29 +326,6 @@ param adminpass string = 'Incredibl3#512ABC'
 @description('Name of the virtual machine.')
 param vmName string = 'VM-${env_prefix[env].envPrefix}-001'
 
-/*
-@description('Unique DNS Name for the Public IP used to access the Virtual Machine.')
-param dnsLabelPrefixvm string = toLower('${vmName}-${uniqueString(rg_03_name, vmName)}')
-*/
-
-/*
-@description('Name for the Public IP used to access the Virtual Machine.')
-param publicIpName string = 'myPublicIP'
-
-@description('Allocation method for the Public IP used to access the Virtual Machine.')
-@allowed([
-  'Dynamic'
-  'Static'
-])
-param publicIPAllocationMethod string = 'Dynamic'
-
-@description('SKU for the Public IP used to access the Virtual Machine.')
-@allowed([
-  'Basic'
-  'Standard'
-])
-param publicIpSku string = 'Basic'
-*/
 
 @description('The Windows version for the VM. This will pick a fully patched image of this given Windows version.')
 @allowed([
@@ -415,7 +394,8 @@ param OSVersion string = '2022-datacenter'
 
 
 @description('Size of the virtual machine.')
-param vmSize string = 'Standard_B2s'      //azureprice.net - reference for full list and costs
+param vmSize string = 'Standard_B1s'      //azureprice.net - reference for full list and costs
+//param vmSize string = 'Standard_B2s'  
 
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
 param nicName string = '${vmName}-nic'
@@ -512,6 +492,8 @@ param nicName string = '${vmName}-nic'
       vnet_spoke_001_address_space : vnet_spoke_001_address_space
       subnet_spoke_001_name : subnet_spoke_001_name
       subnet_spoke_001_address_space : subnet_spoke_001_address_space
+      subnet_spoke_001_test_name : subnet_spoke_001_test_name
+      subnet_spoke_001_test_address_space : subnet_spoke_001_test_address_space
     }
     dependsOn: [
       vnet_hub
@@ -796,7 +778,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //=======Start of Compute Modules============//
 //===========================================//
 
-
+/*
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -812,6 +794,33 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       tags: tags
       location: location
       nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      workspace_id : law.outputs.workspace_id
+      workspace_id2 : law.outputs.workspaceIdOutput
+      workspace_key: law.outputs.workspaceKeyOutput
+    }
+    dependsOn: [
+      //monitoring_vm_memory
+      vmInsights
+    ]
+  }
+  */
+
+    //Test VM
+  module vm_002 'Modules/Compute/VirtualMachines.bicep' = {
+    name: 'vm_002-module'
+    scope: resourceGroup(rg_03_name)
+    
+    params: {
+      adminUsername: adminUsername
+      adminpass: adminpass
+      vmName: 'testmachine'
+      storageAccountName: storageAccountName
+      OSVersion: OSVersion
+      vmSize: vmSize
+      nicName: 'someNamenic'
+      tags: tags
+      location: location
+      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_test_id
       workspace_id : law.outputs.workspace_id
       workspace_id2 : law.outputs.workspaceIdOutput
       workspace_key: law.outputs.workspaceKeyOutput

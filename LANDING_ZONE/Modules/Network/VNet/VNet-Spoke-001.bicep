@@ -17,7 +17,9 @@ param vnet_spoke_001_address_space string
 
 //Spoke 001 Subnet Parameters
 param subnet_spoke_001_name string
+param subnet_spoke_001_test_name string
 param subnet_spoke_001_address_space string
+param subnet_spoke_001_test_address_space string
 
 
 //===============End Params===============//
@@ -46,6 +48,7 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
             {
               service: 'Microsoft.Storage'
               locations: [
+                'eastus'
                 'eastus2'
                 'centralus'
               ]
@@ -65,6 +68,7 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
             {
               service: 'Microsoft.Sql'
               locations: [
+                'eastus'
                 'eastus2'
               ]
             }
@@ -75,6 +79,49 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
         }
       }
 
+      //Testing Subnet
+      {
+        name: subnet_spoke_001_test_name
+        properties: {
+          addressPrefix: subnet_spoke_001_test_address_space
+          /*networkSecurityGroup: {
+            id: 
+          }
+          */
+          serviceEndpoints: [
+            {
+              service: 'Microsoft.Storage'
+              locations: [
+                'eastus'
+                'eastus2'
+                'centralus'
+              ]
+            }
+            {
+              service: 'Microsoft.KeyVault'
+              locations: [
+                '*'
+              ]
+            }
+            {
+              service: 'Microsoft.EventHub'
+              locations: [
+                '*'
+              ]
+            }
+            {
+              service: 'Microsoft.Sql'
+              locations: [
+                'eastus'
+                'eastus2'
+              ]
+            }
+          ]
+          delegations: []
+          privateEndpointNetworkPolicies: 'Enabled'
+          privateLinkServiceNetworkPolicies: 'Enabled'
+        }
+      }
 
     ]
     enableDdosProtection: false
@@ -87,4 +134,5 @@ resource vnet_spoke_001 'Microsoft.Network/virtualNetworks@2020-11-01' = {
 output vnet_spoke_001_id string = vnet_spoke_001.id
 //output subnet_spoke_001_id string =  vnet_spoke_001.properties.subnets[0].id
 output subnet_spoke_001_id string =  '${vnet_spoke_001.id}/subnets/${subnet_spoke_001_name}'
+output subnet_spoke_test_id string =  '${vnet_spoke_001.id}/subnets/${subnet_spoke_001_test_name}'
 

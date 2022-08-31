@@ -409,7 +409,7 @@ param OSVersion string = '2022-datacenter'
 
 @description('Size of the virtual machine.')
 //param vmSize string = 'Standard_B1s'      //azureprice.net - reference for full list and costs
-param vmSize string = 'Standard_B2s'  
+param vmSize string = 'Standard_B2s'  // this image works with log insight agent.  Some images do not work with the agent
 
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
 param nicName string = '${vmName}-nic'

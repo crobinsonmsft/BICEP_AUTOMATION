@@ -24,19 +24,53 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     @description('Defines the environment classification our deployment will be based on')
     param env string = 'Development'  // Set this value
 
-    //---------------------------------//
-
-    param env_prefix object = {
+  //---------------------------------//
+  //---------ENVIRONMENT TABLE-------//
+    param env_table object = {
       Production: {
-        envPrefix : 'PRD'
+          envPrefix : 'PRD'
+          subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+        
+            //SPOKE 001 VNET Parameters
+            vnet_spoke_001_name : 'VNET-SPOKE-PRD-001'   //Desired name of the vnet
+            vnet_spoke_001_address_space : '10.1.0.0/20'          //Address space for entire vnet
+          
+            //SPOKE 001 Subnet Parameters
+            subnet_spoke_001_name : 'WEB-VMs-PRD-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+            subnet_spoke_001_test_name : 'TEST-VMs-PRD-001'  
+            subnet_spoke_001_address_space : '10.1.0.0/24'           //Subnet address space for the spoke
+            subnet_spoke_001_test_address_space : '10.1.1.0/24'           //Subnet address space for the test spoke
       }
       Development: {
-        envPrefix: 'DEV'
+          envPrefix : 'DEV'
+          subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+        
+            //SPOKE 001 VNET Parameters
+            vnet_spoke_001_name : 'VNET-SPOKE-DEV-001'   //Desired name of the vnet
+            vnet_spoke_001_address_space : '10.2.0.0/20'          //Address space for entire vnet
+          
+            //SPOKE 001 Subnet Parameters
+            subnet_spoke_001_name : 'WEB-VMs-DEV-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+            subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'  
+            subnet_spoke_001_address_space : '10.2.0.0/24'           //Subnet address space for the spoke
+            subnet_spoke_001_test_address_space : '10.2.1.0/24'           //Subnet address space for the test spoke
       }
       Sandbox: {
-        envPrefix: 'SBX'
+          envPrefix : 'SBX'
+          subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+                  
+            //SPOKE 001 VNET Parameters
+            vnet_spoke_001_name : 'VNET-SPOKE-SBX-001'   //Desired name of the vnet
+            vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
+          
+            //SPOKE 001 Subnet Parameters
+            subnet_spoke_001_name : 'WEB-VMs-SBX-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+            subnet_spoke_001_test_name : 'TEST-VMs-SBX-001'  
+            subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
+            subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke
       }
     }
+
 
   //Location
 
@@ -66,24 +100,24 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
   //=======Resource Group Parameters=====//
 
-    param rg_01_name string = 'RG-CONNECTIVITY-${env_prefix[env].envPrefix}-001'
-    param rg_02_name string = 'RG-MANAGEMENT-${env_prefix[env].envPrefix}-001'
-    param rg_03_name string = 'RG-RESOURCE-${env_prefix[env].envPrefix}-001'
+    param rg_01_name string = 'RG-CONNECTIVITY-${env_table[env].envPrefix}-001'
+    param rg_02_name string = 'RG-MANAGEMENT-${env_table[env].envPrefix}-001'
+    param rg_03_name string = 'RG-RESOURCE-${env_table[env].envPrefix}-001'
 
 //============================================================//
 //===================Networking Parameters====================//
 
   //======NSG Parameters======//
     
-    var nsg_bastion_name = 'NSG-BASTION-${env_prefix[env].envPrefix}-001'
-    var nsg_private_name = 'NSG-PRIVATE-${env_prefix[env].envPrefix}-001'
-    var nsg_public_name = 'NSG-PUBLIC-${env_prefix[env].envPrefix}-001'
+    var nsg_bastion_name = 'NSG-BASTION-${env_table[env].envPrefix}-001'
+    var nsg_private_name = 'NSG-PRIVATE-${env_table[env].envPrefix}-001'
+    var nsg_public_name = 'NSG-PUBLIC-${env_table[env].envPrefix}-001'
 
 
   //=====VNET Parameters=====//
 
     //HUB VNET Parameters
-      param vnet_hub_name string = 'VNET-HUB-${env_prefix[env].envPrefix}'   //Desired name of the vnet
+      param vnet_hub_name string = 'VNET-HUB-${env_table[env].envPrefix}'   //Desired name of the vnet
       param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
 
     //HUB Subnet Parameters
@@ -99,64 +133,45 @@ targetScope = 'subscription'        // We will deploy these modules against our 
           param subnet_hub_bas_address_space string = '10.0.2.0/24' //Subnet address space for Bastion Subnet
           param subnet_hub_ss_address_space string = '10.0.3.0/24'  //Subnet address space for Public Subnet
 
-    //SPOKE 001 VNET Parameters
-      param vnet_spoke_001_name string = 'VNET-SPOKE-${env_prefix[env].envPrefix}-001'   //Desired name of the vnet
-      param vnet_spoke_001_address_space string = '10.1.0.0/20'          //Address space for entire vnet
-
-        //SPOKE 001 Subnet Parameters
-          var subnet_spoke_001_name = 'WEB-VMs-${env_prefix[env].envPrefix}-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-          var subnet_spoke_001_test_name = 'TEST-VMs-${env_prefix[env].envPrefix}-001'  
-          param subnet_spoke_001_address_space string = '10.1.0.0/24'           //Subnet address space for the spoke
-          param subnet_spoke_001_test_address_space string = '10.1.1.0/24'           //Subnet address space for the test spoke
 
 
 //=======Peering Parameters========//
 
-  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${vnet_spoke_001_name}'      // hub to spoke 001 peering name
-  param peering_name_spoke_001_to_hub string = '${vnet_spoke_001_name}/${vnet_spoke_001_name}-peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
+  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
+  param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
 
-  // Hub to Spoke Params 
-  param huballowForwardedTraffic bool = true
-  param huballowGatewayTransit bool = true
-  param huballowVirtualNetworkAccess bool = true
-  param hubdoNotVerifyRemoteGateways bool = false
-  param hubpeeringState string = 'Connected'
-  param hubuseRemoteGateways bool = false    
+      // Hub to Spoke Params 
+      param huballowForwardedTraffic bool = true
+      param huballowGatewayTransit bool = true
+      param huballowVirtualNetworkAccess bool = true
+      param hubdoNotVerifyRemoteGateways bool = false
+      param hubpeeringState string = 'Connected'
+      param hubuseRemoteGateways bool = false    
 
 
-  // Spoke to Hub Params
-  param spokeallowForwardedTraffic bool = true
-  param spokeallowGatewayTransit bool = false
-  param spokeallowVirtualNetworkAccess bool = true
-  //param spokedoNotVerifyRemoteGateways bool = true
-  param spokepeeringState string = 'Connected'
-  param spokeuseRemoteGateways bool = false   // Should be true unless you have no gateway in the hub
+      // Spoke to Hub Params
+      param spokeallowForwardedTraffic bool = true
+      param spokeallowGatewayTransit bool = false
+      param spokeallowVirtualNetworkAccess bool = true
+      //param spokedoNotVerifyRemoteGateways bool = true
+      param spokepeeringState string = 'Connected'
+      param spokeuseRemoteGateways bool = false   // Should be true unless you have no gateway in the hub
 
-//Public IP Address Parameters
-var publicIPAddressName = 'PUB-IP-${env_prefix[env].envPrefix}-BASTION'
+//Public IP Address Parameters for Bastion
+var publicIPAddressName = 'PUB-IP-${env_table[env].envPrefix}-BASTION'
 param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
 param publicIPAllocationMethod string = 'Static' //Should ALWAYS be Static for Bastion Usage
 param publicIPAddressVersion string = 'IPv4'
 param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
 //Bastion Host Parameters
-var bastionName = 'BASTION-${env_prefix[env].envPrefix}-001'
+var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
 
 
 //============================================================//
 //===================Begin Monitoring Parameters================//
 
-param subscription_scopes_array object = {
-  Production: {
-    subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-  }
-  Development: {
-    subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-  }
-  Sandbox: {
-    subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-  }
-}
+
 
   //==Action Group Parameters==//
   @description('Enter Emails or Distribution lists in SMTP format to direct Email alerts to.')
@@ -170,7 +185,7 @@ param subscription_scopes_array object = {
 
   //Log Analytics Workspace
   @description('The name of the Log Analytics Workspace')
-  param workspaceName string = 'LAW-${env_prefix[env].envPrefix}-001'            //Name of the Log Analytics Workspace
+  param workspaceName string = 'LAW-${env_table[env].envPrefix}-001'            //Name of the Log Analytics Workspace
   @allowed([
     'PerGB2018'
   ])
@@ -191,8 +206,7 @@ param vmCpuPercentageAlert_location string = 'global'        //Region alert will
 param vmCpuPercentageAlert_severity int = 2                          //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmCpuPercentageAlert_enabled bool = true
 
-param vmCpuPercentageAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
-//[  subscription_scopes_array[env].subscription]
+param vmCpuPercentageAlert_scopes string = '${env_table[env].subscription}/resourceGroups/${rg_03_name}'
 param vmCpuPercentageAlert_evaluationFrequency string = 'PT5M'     //How Often Alert is Evaluated in ISO 8601 format
 
 @allowed([
@@ -228,7 +242,7 @@ param vmSysStateAlertSeverity int = 0   //Severity Level {0-Critical, 1-Error, 2
 
 @description('Enable or Disable the VM State Alert')
 param vmSysStateAlertEnabled bool = true
-param vmSysStateAlertScope_ids string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
+param vmSysStateAlertScope_ids string = '${env_table[env].subscription}/resourceGroups/${rg_03_name}'
 
 @description('how often the metric alert is evaluated represented in ISO 8601 duration format')
 @allowed([
@@ -263,7 +277,7 @@ param vmMemoryPercentageAlert_description string = '${metricAlerts_vm_memory_per
 ])
 param vmMemoryPercentageAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmMemoryPercentageAlert_enabled bool = true //Is alert enabled or disabled?  'True' indicates that the alert is enabled
-param vmMemoryPercentageAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}' //'${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}' //What area of the Azure hierarchy are we targeting
+param vmMemoryPercentageAlert_scopes string = '${env_table[env].subscription}/resourceGroups/${rg_03_name}' //'${env_table[env].subscription}/resourceGroups/${rg_03_name}' //What area of the Azure hierarchy are we targeting
 param vmMemoryPercentageAlert_evaluationFrequency string = 'PT5M' //how often the metric alert is evaluated represented in ISO 8601 duration format
 
 @allowed([
@@ -286,7 +300,7 @@ param vmDiskUtilizationAlert__name string = 'Less than 10 Percent Free Disk Spac
 param vmDiskUtilizationAlert_description string = 'Less than 10 Percent Free Disk Space Remaining on Drive'
 param vmDiskUtilizationAlert_severity int = 0   //Severity Level {0-Critical, 1-Error, 2-Warning, 3-Informational, 4-Verbose}
 param vmDiskUtilizationAlert_enabled bool = true
-param vmDiskUtilizationAlert_scopes string = '${subscription_scopes_array[env].subscription}/resourceGroups/${rg_03_name}'
+param vmDiskUtilizationAlert_scopes string = '${env_table[env].subscription}/resourceGroups/${rg_03_name}'
 param vmDiskUtilizationAlert_evaluationFrequency string = 'PT5M'
 param vmDiskUtilizationAlert_windowSize string = 'PT5M'
 param vmDiskUtilizationAlert_percentageVal string = '10' //The remaining percentage that when breached, will signal an alert
@@ -303,8 +317,8 @@ param vmDiskUtilizationAlert_percentageVal string = '10' //The remaining percent
       'ZoneRedundant'
     ])
     param BackupType string = 'LocallyRedundant'
-    var backupPolicyName = 'ABC-VM-${env_prefix[env].envPrefix}-DefaultBackup'
-    param vaultName string = 'RSV-${env_prefix[env].envPrefix}-001'
+    var backupPolicyName = 'ABC-VM-${env_table[env].envPrefix}-DefaultBackup'
+    param vaultName string = 'RSV-${env_table[env].envPrefix}-001'
     param vaultSku object = {
       name: 'RS0'
       tier: 'Standard'
@@ -324,7 +338,7 @@ param adminUsername string = 'azureadmin'
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'VM-${env_prefix[env].envPrefix}-001'
+param vmName string = 'VM-${env_table[env].envPrefix}-001'
 
 
 @description('The Windows version for the VM. This will pick a fully patched image of this given Windows version.')
@@ -394,8 +408,8 @@ param OSVersion string = '2022-datacenter'
 
 
 @description('Size of the virtual machine.')
-param vmSize string = 'Standard_B1s'      //azureprice.net - reference for full list and costs
-//param vmSize string = 'Standard_B2s'  
+//param vmSize string = 'Standard_B1s'      //azureprice.net - reference for full list and costs
+param vmSize string = 'Standard_B2s'  
 
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
 param nicName string = '${vmName}-nic'
@@ -488,12 +502,12 @@ param nicName string = '${vmName}-nic'
       tags: tags
       location: location
       private_nsg_id: nsg.outputs.private_nsg_id
-      vnet_spoke_001_name: vnet_spoke_001_name
-      vnet_spoke_001_address_space : vnet_spoke_001_address_space
-      subnet_spoke_001_name : subnet_spoke_001_name
-      subnet_spoke_001_address_space : subnet_spoke_001_address_space
-      subnet_spoke_001_test_name : subnet_spoke_001_test_name
-      subnet_spoke_001_test_address_space : subnet_spoke_001_test_address_space
+      vnet_spoke_001_name: env_table[env].vnet_spoke_001_name
+      vnet_spoke_001_address_space : env_table[env].vnet_spoke_001_address_space
+      subnet_spoke_001_name : env_table[env].subnet_spoke_001_name
+      subnet_spoke_001_address_space : env_table[env].subnet_spoke_001_address_space
+      subnet_spoke_001_test_name : env_table[env].subnet_spoke_001_test_name
+      subnet_spoke_001_test_address_space : env_table[env].subnet_spoke_001_test_address_space
     }
     dependsOn: [
       vnet_hub
@@ -618,7 +632,7 @@ param nicName string = '${vmName}-nic'
       tags: tags
       BackupType: BackupType
       backupPolicyName: backupPolicyName
-      env_prefix: env_prefix[env].envPrefix
+      env_table: env_table[env].envPrefix
     }
     dependsOn: [
       rsv_001
@@ -778,7 +792,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //=======Start of Compute Modules============//
 //===========================================//
 
-/*
+
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -803,31 +817,5 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       vmInsights
     ]
   }
-  */
 
-    //Test VM
-  module vm_002 'Modules/Compute/VirtualMachines.bicep' = {
-    name: 'vm_002-module'
-    scope: resourceGroup(rg_03_name)
-    
-    params: {
-      adminUsername: adminUsername
-      adminpass: adminpass
-      vmName: 'testmachine'
-      storageAccountName: storageAccountName
-      OSVersion: OSVersion
-      vmSize: vmSize
-      nicName: 'someNamenic'
-      tags: tags
-      location: location
-      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_test_id
-      workspace_id : law.outputs.workspace_id
-      workspace_id2 : law.outputs.workspaceIdOutput
-      workspace_key: law.outputs.workspaceKeyOutput
-    }
-    dependsOn: [
-      //monitoring_vm_memory
-      vmInsights
-    ]
-  }
 

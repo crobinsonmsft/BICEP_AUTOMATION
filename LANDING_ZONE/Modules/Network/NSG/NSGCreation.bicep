@@ -10,6 +10,8 @@ param networkSecurityGroups_private_nsg_name string
 
 //===============End Params===============//
 
+//NO NSG SHOULD BE USED WITH AZURE FIREWALL OR AZURE GATEWAY SERVICE
+
 //======== Start Resource Creation =======//
 //Bastion
 resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
@@ -93,8 +95,8 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
         }
       }
 
-              //-----END INBOUND
-              //-----START OUTBOUND
+              //-----END BASTION INBOUND
+              //-----START BASTION OUTBOUND
 
       {
         name: 'AllowSshRdpOutbound'

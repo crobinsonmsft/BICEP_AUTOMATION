@@ -125,7 +125,7 @@ resource vm_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
 
 output vm_001_id string = vm_001.id
 
-/*
+
 
 //=========================//
 //Onboard to VM Insights
@@ -174,7 +174,7 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
   }
 }
 
-*/
+
 
 resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-preview' = {
   scope: vm_001

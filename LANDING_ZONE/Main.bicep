@@ -459,8 +459,8 @@ param nicName string = '${vmName}-nic'
       tags: tags
       location: location
       networkSecurityGroups_bastion_nsg_name: nsg_bastion_name
-      networkSecurityGroups_public_nsg_name: nsg_private_name
-      networkSecurityGroups_private_nsg_name: nsg_public_name
+      networkSecurityGroups_public_nsg_name:  nsg_public_name
+      networkSecurityGroups_private_nsg_name: nsg_private_name
     }
     dependsOn: [
       rg
@@ -559,7 +559,7 @@ param nicName string = '${vmName}-nic'
       ] 
     }
 
-    /*
+  /*
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -577,9 +577,9 @@ param nicName string = '${vmName}-nic'
         rg
       ]
   }
-  */
+  
 
-  /*
+  
   //Bastion Host Module
   module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
     name: 'bastion-host-module'

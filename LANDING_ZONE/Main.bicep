@@ -23,6 +23,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     ])
     @description('Defines the environment classification our deployment will be based on')
     param env string = 'Development'  // Set this value
+    param DeploymentDate string = utcNow('yyyy-MM-dd')
 
   //---------------------------------//
   //---------ENVIRONMENT TABLE-------//
@@ -88,7 +89,9 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     param tags object = {                               // Edit tags accordingly
       Environment: env
       Owner: 'Calvin Robinson'
-      org: 'ABC-Corp'
+      Department: 'Finance'
+      Division: 'ABC-123'
+      DeploymentDate: DeploymentDate
     }
 
 //============================================================//

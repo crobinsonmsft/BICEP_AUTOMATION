@@ -23,7 +23,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     ])
     @description('Defines the environment classification our deployment will be based on')
     param env string = 'Development'  // Set this value
-    param DeploymentDate string = utcNow('yyyy-MM-dd')
+    param DeploymentDate string = utcNow('yyyy-MMM-dd')  //Let's grab the date and time for our resource deployments
 
   //---------------------------------//
   //---------ENVIRONMENT TABLE-------//

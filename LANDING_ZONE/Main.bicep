@@ -37,10 +37,11 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             vnet_spoke_001_address_space : '10.1.0.0/20'          //Address space for entire vnet
           
             //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-PRD-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-            subnet_spoke_001_test_name : 'TEST-VMs-PRD-001'  
+            subnet_spoke_001_name : 'WEB-VMs-PRD-001'             
+            subnet_spoke_001_test_name : 'TEST-VMs-PRD-001'
             subnet_spoke_001_address_space : '10.1.0.0/24'           //Subnet address space for the spoke
             subnet_spoke_001_test_address_space : '10.1.1.0/24'           //Subnet address space for the test spoke
+
       }
       Development: {
           envPrefix : 'DEV'
@@ -51,8 +52,8 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             vnet_spoke_001_address_space : '10.2.0.0/20'          //Address space for entire vnet
           
             //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-DEV-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-            subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'  
+            subnet_spoke_001_name : 'WEB-VMs-DEV-001'             
+            subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
             subnet_spoke_001_address_space : '10.2.0.0/24'           //Subnet address space for the spoke
             subnet_spoke_001_test_address_space : '10.2.1.0/24'           //Subnet address space for the test spoke
       }
@@ -65,7 +66,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
           
             //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-SBX-001'             //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+            subnet_spoke_001_name : 'WEB-VMs-SBX-001'
             subnet_spoke_001_test_name : 'TEST-VMs-SBX-001'  
             subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
             subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke

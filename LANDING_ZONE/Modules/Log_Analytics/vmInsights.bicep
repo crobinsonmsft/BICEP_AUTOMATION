@@ -8,6 +8,11 @@ param vmInsights object = {
   name: 'VMInsights(${workspaceName})'
   galleryName: 'VMInsights'
 }
+param vmUpdates object = {
+  name: 'VMUpdates(${workspaceName})'
+  galleryName: 'VMUpdates'
+}
+param automationAccountName string
 
 param workspace_id string
 param location string
@@ -28,6 +33,47 @@ resource solutionsVMInsights 'Microsoft.OperationsManagement/solutions@2015-11-0
     publisher: 'Microsoft'
     product: 'OMSGallery/${vmInsights.galleryName}'
     promotionCode: ''
+  }
+}
+
+//VM Updates 
+resource solutionsUpdates 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  name: vmUpdates.name
+  location: location
+  tags: tags
+  properties: {
+    workspaceResourceId: workspace_id
+  }
+  plan: {
+    name: vmUpdates.name
+    publisher: 'Microsoft'
+    product: 'OMSGallery/${vmUpdates.galleryName}'
+    promotionCode: ''
+  }
+}
+
+resource automationAccount 'Microsoft.Automation/automationAccounts@2020-01-13-preview' = {
+  name: automationAccountName
+  location: location
+  tags: tags
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    publicNetworkAccess: false
+    sku: {
+      name: 'Basic'
+    }
+  }
+}
+
+resource workspaceName_Automation 'Microsoft.OperationalInsights/workspaces/linkedServices@2020-08-01' = {
+
+  name: '${workspaceName}/Automation'
+  tags: tags
+  //location: location
+  properties: {
+    resourceId: automationAccount.id
   }
 }
 

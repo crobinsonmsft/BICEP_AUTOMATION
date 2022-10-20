@@ -201,6 +201,12 @@ var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
     name: 'VMInsights(${workspaceName})'
     galleryName: 'VMInsights'
   }
+  param vmUpdates_ object = {
+    name: 'VMUpdates(${workspaceName})'
+    galleryName: 'VMUpdates'
+  }
+
+  param automationAccountName string = 'AzureVMPatchingAccount'
 
 
 //=====CPU Alerting Parameters=//
@@ -563,7 +569,7 @@ param nicName string = '${vmName}-nic'
       ] 
     }
 
-  /*
+  
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -600,7 +606,7 @@ param nicName string = '${vmName}-nic'
         publicIP
       ]
   } 
-*/
+
 
 //===========================================//
 //=========End of Network Modules=======//
@@ -690,7 +696,9 @@ module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
     location: location
     workspaceName: workspaceName
     vmInsights : vmInsights_
+    vmUpdates: vmUpdates_
     workspace_id : law.outputs.workspace_id
+    automationAccountName: automationAccountName
   }
   dependsOn: [
       law

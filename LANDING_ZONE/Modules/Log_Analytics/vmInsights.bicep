@@ -7,6 +7,7 @@ param workspaceName string
 param vmInsights object
 param vmUpdates object
 param automationAccountName string
+param loc2 string = 'eastus2'
 
 param workspace_id string
 param location string
@@ -50,7 +51,7 @@ resource solutionsUpdates 'Microsoft.OperationsManagement/solutions@2015-11-01-p
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2020-01-13-preview' = {
   name: automationAccountName
-  location: location
+  location: loc2
   tags: tags
   identity: {
     type: 'SystemAssigned'

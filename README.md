@@ -77,3 +77,4 @@ az group delete -n [someresourcegroupname] -y
 ```
 
 
+az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep

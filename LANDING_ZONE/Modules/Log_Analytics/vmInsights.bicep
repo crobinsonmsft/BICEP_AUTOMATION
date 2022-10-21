@@ -32,9 +32,11 @@ resource solutionsVMInsights 'Microsoft.OperationsManagement/solutions@2015-11-0
 
 //VM Updates 
 resource solutionsUpdates 'Microsoft.OperationsManagement/solutions@2015-11-01-preview' = {
+  //name: vmUpdates.name
   name: vmUpdates.name
   location: location
   tags: tags
+  //id: '/subscriptions/'
   properties: {
     workspaceResourceId: workspace_id
   }
@@ -70,5 +72,3 @@ resource workspaceName_Automation 'Microsoft.OperationalInsights/workspaces/link
     resourceId: automationAccount.id
   }
 }
-
-

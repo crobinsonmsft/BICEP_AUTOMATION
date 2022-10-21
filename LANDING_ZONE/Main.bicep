@@ -202,8 +202,8 @@ var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
     galleryName: 'VMInsights'
   }
   param vmUpdates_ object = {
-    name: 'VMUpdates(${workspaceName})'
-    galleryName: 'VMUpdates'
+    name: 'Updates(${workspaceName})'
+    galleryName: 'Updates'
   }
 
   param automationAccountName string = 'AzureVMPatchingAccount'

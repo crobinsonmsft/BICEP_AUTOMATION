@@ -4,14 +4,8 @@
 //=================Params=================//
 
 param workspaceName string
-param vmInsights object = {
-  name: 'VMInsights(${workspaceName})'
-  galleryName: 'VMInsights'
-}
-param vmUpdates object = {
-  name: 'VMUpdates(${workspaceName})'
-  galleryName: 'VMUpdates'
-}
+param vmInsights object
+param vmUpdates object
 param automationAccountName string
 
 param workspace_id string

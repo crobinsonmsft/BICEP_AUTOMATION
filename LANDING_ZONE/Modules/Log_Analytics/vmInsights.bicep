@@ -51,7 +51,7 @@ resource solutionsUpdates 'Microsoft.OperationsManagement/solutions@2015-11-01-p
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2020-01-13-preview' = {
   name: automationAccountName
-  location: loc2
+  location: loc2  //cannot be in the same region as the log analytics workspace
   tags: tags
   identity: {
     type: 'SystemAssigned'

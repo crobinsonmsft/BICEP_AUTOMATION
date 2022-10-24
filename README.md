@@ -64,6 +64,11 @@ az account list-locations
 az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep --parameters .\parameterfilename.json
 ```
 
+### Run against subscription (No parameter file)
+```
+az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep
+```
+
 ### To Pass Inline parameters
 ```
 az deployment sub create --name 'SOME DEPLOYMENT NAME' --location eastus -p exampleArray="['value1','value2']" someparamname='somestringvalue'
@@ -75,6 +80,3 @@ az deployment sub create --name 'SOME DEPLOYMENT NAME' --location eastus -p exam
 ```
 az group delete -n [someresourcegroupname] -y
 ```
-
-
-az deployment sub create --name "dev-deployment-$(Get-Date -Format "yyyy-MMM-dd")" --location eastus --template-file .\Main.bicep

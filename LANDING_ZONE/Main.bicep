@@ -196,17 +196,20 @@ var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
   param logAnalyticsWorkspaceSku string = 'PerGB2018'
 
 
-  //VM Insights Parameters
+  //VM Insights Solution Parameters
   param vmInsights_ object = {
     name: 'VMInsights(${workspaceName})'
     galleryName: 'VMInsights'
   }
+
+  //VM Updates Solution Parameters
   param vmUpdates_ object = {
     name: 'Updates(${workspaceName})'
     galleryName: 'Updates'
   }
 
   param automationAccountName string = 'AzureVMPatchingAccount'
+  param location_2 string = 'eastus2'
 
 
 //=====CPU Alerting Parameters=//
@@ -688,12 +691,13 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
 }
 
 //VM Insights Module
-module vmInsights 'Modules/Log_Analytics/vmInsights.bicep' = {
+module vmInsights 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
   name: 'vm-insights-module'
   scope: resourceGroup(rg_02_name)
   params: {
     tags: tags
     location: location
+    location_2: location_2
     workspaceName: workspaceName
     vmInsights : vmInsights_
     vmUpdates: vmUpdates_

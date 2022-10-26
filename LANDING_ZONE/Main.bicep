@@ -209,7 +209,12 @@ var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
   }
 
   param automationAccountName string = 'AzureVMPatchingAccount'
-  param location_2 string = 'eastus2'
+
+  // This parameter is specifically used for the automation account's location
+  //This value CANNOT be the same value that is set for the 'location' parameter
+  //If location parameter is set to 'eastus', then this value should be 'eastus2'
+  param location_2 string = 'eastus2'  
+
 
 
 //=====CPU Alerting Parameters=//

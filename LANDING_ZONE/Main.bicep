@@ -690,8 +690,8 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
     ]
 }
 
-//VM Insights Module
-module vmInsights 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
+//Log Analytics Solutions Module
+module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
   name: 'vm-insights-module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -726,7 +726,7 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
     vmCpuPercentageAlert_targetResourceRegion : vmCpuPercentageAlert_targetResourceRegion
   }
   dependsOn: [
-    vmInsights
+    solutions
   ]
 }
 
@@ -750,7 +750,7 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
     vmSysStateAlert_timeGenerated : vmSysStateAlert_timeGenerated
   }
   dependsOn: [
-    vmInsights
+    solutions
   ]
 }
 
@@ -774,7 +774,7 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
     vmMemoryPercentageAlert_overrideQueryTimeRange : vmMemoryPercentageAlert_overrideQueryTimeRange
   }
   dependsOn: [
-    vmInsights
+    solutions
   ]
 }
 
@@ -796,7 +796,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     vmDiskUtilizationAlert_percentageVal : vmDiskUtilizationAlert_percentageVal
   }
   dependsOn: [
-    vmInsights
+    solutions
   ]
 }
 
@@ -830,7 +830,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     }
     dependsOn: [
       //monitoring_vm_memory
-      vmInsights
+      solutions
     ]
   }
 

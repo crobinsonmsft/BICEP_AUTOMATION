@@ -577,7 +577,7 @@ param nicName string = '${vmName}-nic'
       ] 
     }
 
-  
+  /*
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -614,7 +614,7 @@ param nicName string = '${vmName}-nic'
         publicIP
       ]
   } 
-
+*/
 
 //===========================================//
 //=========End of Network Modules=======//
@@ -813,7 +813,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //=======Start of Compute Modules============//
 //===========================================//
 
-
+/*
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -838,5 +838,4 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       solutions
     ]
   }
-
-
+*/

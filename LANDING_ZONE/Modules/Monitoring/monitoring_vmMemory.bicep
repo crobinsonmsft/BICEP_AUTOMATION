@@ -44,7 +44,7 @@ resource metricAlerts_vm_memory_percentage_name_resource 'microsoft.insights/sch
     criteria: {
       allOf: [
         {
-          query: 'Perf \n| where ObjectName == "Memory"\n| where CounterName == "% Used Memory" or CounterName == "% Committed Bytes In Use" \n| where TimeGenerated > ago(5m)\n| summarize avg = avg(CounterValue) by Computer \n| where avg > ${vmMemoryPercentageAlert_percentageVal}\n'
+          query: 'Perf \n| where ObjectName == "Memory"\n| where CounterName == "% Used Memory" or CounterName == "% Committed Bytes In Use" \n| where TimeGenerated > ago(5m)\n| summarize avg = avg(CounterValue) by Computer \n| where avg > ${vmMemoryPercentageAlert_percentageVal}\n' //if fails ensure there are spaces after \n
           timeAggregation: 'Count'
           dimensions: []
           operator: 'GreaterThan'

@@ -545,7 +545,7 @@ param nicName string = '${vmName}-nic'
         spokeallowForwardedTraffic : spokeallowForwardedTraffic
         spokeallowGatewayTransit : spokeallowGatewayTransit
         spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
-        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways
+        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
         spokepeeringState : spokepeeringState
         spokeuseRemoteGateways : spokeuseRemoteGateways
       }

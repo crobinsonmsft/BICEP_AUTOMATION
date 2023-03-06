@@ -107,6 +107,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     param rg_01_name string = 'RG-CONNECTIVITY-${env_table[env].envPrefix}-001'
     param rg_02_name string = 'RG-MANAGEMENT-${env_table[env].envPrefix}-001'
     param rg_03_name string = 'RG-RESOURCE-${env_table[env].envPrefix}-001'
+    //param rg_04_name string = 'NetworkWatcherRG'
 
 //============================================================//
 //===================Networking Parameters====================//
@@ -116,6 +117,33 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     var nsg_bastion_name = 'NSG-BASTION-${env_table[env].envPrefix}-001'
     var nsg_private_name = 'NSG-PRIVATE-${env_table[env].envPrefix}-001'
     var nsg_public_name = 'NSG-PUBLIC-${env_table[env].envPrefix}-001'
+
+  //=======NSG FLow Log Parameters=======//
+  
+  @description('Name of the Network Watcher attached to your subscription. Format: NetworkWatcher_<region_name>')
+  param networkWatcherName string = 'NetworkWatcher_${location}'
+  
+  @description('Name of your Flow log resource')
+  param flowLogName string = 'FlowLog1-priv-nsg-flowlog'
+  //param flowLogName string = 'FlowLogs1-NSG-PRIVATE-${env_table[env].envPrefix}-001'
+  
+  @description('Retention period in days. Default is zero which stands for permanent retention. Can be any Integer from 0 to 365')
+  @minValue(0)
+  @maxValue(365)
+  param retentionDays int = 1
+  
+  @description('FlowLogs Version. Correct values are 1 or 2 (default)')
+  @allowed([
+    1
+    2
+  ])
+  param flowLogsVersion int = 2
+  
+  @description('Storage Account type')
+  param storageAccountType string = 'Standard_LRS'    //NSG flow logs only support Standard-tier storage accounts.  No other options permitted at this time.
+  
+  param guidValue string = newGuid()
+  var storageAccountNameNsg = 'flowlogs${uniqueString(guidValue)}'
 
 
   //=====VNET Parameters=====//
@@ -482,6 +510,25 @@ param nicName string = '${vmName}-nic'
     }
     dependsOn: [
       rg
+    ]
+  }
+
+  //NSG Flow Logs
+  module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = {
+    name: 'nsgFlow-module'
+    scope: resourceGroup(rg_01_name)
+    params: {
+      location: location
+      networkWatcherName: networkWatcherName
+      flowLogName: flowLogName
+      existingNSG: nsg.outputs.private_nsg_id
+      retentionDays: retentionDays
+      flowLogsVersion: flowLogsVersion
+      storageAccountType: storageAccountType
+      storageAccountNameNsg: storageAccountNameNsg
+    }
+    dependsOn: [
+      vnet_spoke_001
     ]
   }
 

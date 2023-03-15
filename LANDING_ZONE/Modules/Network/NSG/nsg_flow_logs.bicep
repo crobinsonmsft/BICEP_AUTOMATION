@@ -13,7 +13,7 @@ param storageAccountType string
 //===============End Params===============//
 
 //======== Start Resource Creation =======//
-//Storage Account
+//-Storage Account
 
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {

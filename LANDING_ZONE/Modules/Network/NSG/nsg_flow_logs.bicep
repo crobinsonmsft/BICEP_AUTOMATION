@@ -9,6 +9,7 @@ param retentionDays int
 param storageAccountNameNsg string
 param flowLogsVersion int
 param storageAccountType string
+param tags object
 
 //===============End Params===============//
 
@@ -30,11 +31,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {
 resource networkWatcher 'Microsoft.Network/networkWatchers@2022-01-01' = {
   name: networkWatcherName
   location: location
+  tags: tags
   properties: {}
 }
 
 resource flowLog 'Microsoft.Network/networkWatchers/flowLogs@2022-01-01' = {
   name: '${networkWatcherName}/${flowLogName}'
+  tags: tags
   location: location
   properties: {
     targetResourceId: existingNSG

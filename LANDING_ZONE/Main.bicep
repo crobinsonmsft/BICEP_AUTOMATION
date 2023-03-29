@@ -145,6 +145,9 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   param guidValue string = newGuid()
   var storageAccountNameNsg = 'flowlogs${uniqueString(guidValue)}'
 
+  // Network Watcher Resource Group Name
+  param networkWatcherRGName string = 'NetworkWatcherRG'
+
 
   //=====VNET Parameters=====//
 
@@ -513,24 +516,28 @@ param nicName string = '${vmName}-nic'
     ]
   }
 
+   
   //NSG Flow Logs
-  module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = {
-    name: 'nsgFlow-module'
-    scope: resourceGroup(rg_01_name)
-    params: {
-      location: location
-      networkWatcherName: networkWatcherName
-      flowLogName: flowLogName
-      existingNSG: nsg.outputs.private_nsg_id
-      retentionDays: retentionDays
-      flowLogsVersion: flowLogsVersion
-      storageAccountType: storageAccountType
-      storageAccountNameNsg: storageAccountNameNsg
+    module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = {
+      name: 'nsgFlow-module'
+      //scope: resourceGroup(rg_01_name)
+      scope: resourceGroup(networkWatcherRGName)
+      params: {
+        location: location
+        networkWatcherName: networkWatcherName
+        flowLogName: flowLogName
+        existingNSG: nsg.outputs.private_nsg_id
+        retentionDays: retentionDays
+        flowLogsVersion: flowLogsVersion
+        storageAccountType: storageAccountType
+        storageAccountNameNsg: storageAccountNameNsg
+        tags: tags
+      }
+      dependsOn: [
+        vnet_spoke_001
+      ]
     }
-    dependsOn: [
-      vnet_spoke_001
-    ]
-  }
+
 
   //VNET HUB Module
   module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {
@@ -727,6 +734,7 @@ module action_group 'Modules/Monitoring/action_group.bicep' = {
   ]
 }
 
+/*
 //Log Analytics Workspace
 module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
   name: 'law-module'
@@ -851,7 +859,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     solutions
   ]
 }
-
+*/
 //==============================================//
 //====End of Monitoring and Alerting Modules====//
 //==============================================//

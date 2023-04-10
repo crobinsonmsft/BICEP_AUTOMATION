@@ -338,3 +338,5 @@ resource networkSecurityGroups_private_nsg_name_resource 'Microsoft.Network/netw
 output bastion_nsg_id string = networkSecurityGroups_bastion_nsg_name_resource.id
 output public_nsg_id string = networkSecurityGroups_public_nsg_name_resource.id
 output private_nsg_id string = networkSecurityGroups_private_nsg_name_resource.id
+
+

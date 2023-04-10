@@ -123,10 +123,6 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   @description('Name of the Network Watcher attached to your subscription. Format: NetworkWatcher_<region_name>')
   param networkWatcherName string = 'NetworkWatcher_${location}'
   
-  @description('Name of your Flow log resource')
-  param flowLogName string = 'FlowLog1-priv-nsg-flowlog'
-  //param flowLogName string = 'FlowLogs1-NSG-PRIVATE-${env_table[env].envPrefix}-001'
-  
   @description('Retention period in days. Default is zero which stands for permanent retention. Can be any Integer from 0 to 365')
   @minValue(0)
   @maxValue(365)
@@ -140,14 +136,14 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   param flowLogsVersion int = 2
   
   @description('Storage Account type')
-  param storageAccountType string = 'Standard_LRS'    //NSG flow logs only support Standard-tier storage accounts.  No other options permitted at this time.
+  param nsgStorageAccountType string = 'Standard_LRS'    //NSG flow logs only support Standard-tier storage accounts.  No other options permitted at this time.
   
   param guidValue string = newGuid()
   var storageAccountNameNsg = 'flowlogs${uniqueString(guidValue)}'
 
   // Network Watcher Resource Group Name
+  // This Resource Group will host the Network Watcher object
   param networkWatcherRGName string = 'NetworkWatcherRG'
-
 
   //=====VNET Parameters=====//
 
@@ -490,6 +486,7 @@ param nicName string = '${vmName}-nic'
         rg_01_name: rg_01_name
         rg_02_name: rg_02_name
         rg_03_name: rg_03_name
+        network_watcher_name: networkWatcherRGName
       }
   }
 //===========================================//
@@ -516,6 +513,7 @@ param nicName string = '${vmName}-nic'
     ]
   }
 
+
    
   //NSG Flow Logs
     module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = {
@@ -525,19 +523,20 @@ param nicName string = '${vmName}-nic'
       params: {
         location: location
         networkWatcherName: networkWatcherName
-        flowLogName: flowLogName
-        existingNSG: nsg.outputs.private_nsg_id
         retentionDays: retentionDays
         flowLogsVersion: flowLogsVersion
-        storageAccountType: storageAccountType
+        nsgStorageAccountType: nsgStorageAccountType
         storageAccountNameNsg: storageAccountNameNsg
+        bastion_nsg_id: nsg.outputs.bastion_nsg_id
+        public_nsg_id: nsg.outputs.public_nsg_id
+        private_nsg_id: nsg.outputs.private_nsg_id
         tags: tags
       }
       dependsOn: [
         vnet_spoke_001
       ]
     }
-
+   
 
   //VNET HUB Module
   module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {

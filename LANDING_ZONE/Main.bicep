@@ -733,7 +733,7 @@ module action_group 'Modules/Monitoring/action_group.bicep' = {
   ]
 }
 
-/*
+
 //Log Analytics Workspace
 module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
   name: 'law-module'
@@ -767,7 +767,7 @@ module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
       law
     ]
 }
-
+/*
 // VM Monitoring CPU
 module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
   name: 'monitoring_cpu_module'
@@ -867,7 +867,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //=======Start of Compute Modules============//
 //===========================================//
 
-/*
+
   module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
@@ -892,4 +892,4 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       solutions
     ]
   }
-*/
+

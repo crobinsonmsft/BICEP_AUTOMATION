@@ -56,6 +56,16 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
             subnet_spoke_001_address_space : '10.2.0.0/24'           //Subnet address space for the spoke
             subnet_spoke_001_test_address_space : '10.2.1.0/24'           //Subnet address space for the test spoke
+
+            //SPOKE 002 VNET Parameters
+            vnet_spoke_002_name : 'VNET-SPOKE-DEV-002'   //Desired name of the vnet
+            vnet_spoke_002_address_space : '10.4.0.0/20'          //Address space for entire vnet
+          
+            //SPOKE 002 Subnet Parameters
+            subnet_spoke_002_name : 'WEB-VMs-DEV-002'             
+            subnet_spoke_002_test_name : 'TEST-VMs-DEV-002'
+            subnet_spoke_002_address_space : '10.4.0.0/24'           //Subnet address space for the spoke
+            subnet_spoke_002_test_address_space : '10.4.1.0/24'           //Subnet address space for the test spoke
       }
       Sandbox: {
           envPrefix : 'SBX'
@@ -169,7 +179,9 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 //=======Peering Parameters========//
 
   param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
+  param peering_name_hub_to_spoke_002 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_002_name}'      // hub to spoke 002 peering name
   param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
+  param peering_name_spoke_002_to_hub string = '${env_table[env].vnet_spoke_002_name}/${env_table[env].vnet_spoke_002_name}-peering-to-${vnet_hub_name}'      // spoke 002 to hub peering name
 
       // Hub to Spoke Params 
       param huballowForwardedTraffic bool = true
@@ -586,9 +598,30 @@ param nicName string = '${vmName}-nic'
     ]
   }
 
+    //VNET Spoke 002 Module
+    module vnet_spoke_002 'Modules/Network/VNet/VNet-Spoke-002.bicep' = {
+      name: 'vnet-spoke_002-module'
+      scope: resourceGroup(rg_01_name)
+      params: {
+        tags: tags
+        location: location
+        private_nsg_id: nsg.outputs.private_nsg_id
+        vnet_spoke_002_name: env_table[env].vnet_spoke_002_name
+        vnet_spoke_002_address_space : env_table[env].vnet_spoke_002_address_space
+        subnet_spoke_002_name : env_table[env].subnet_spoke_002_name
+        subnet_spoke_002_address_space : env_table[env].subnet_spoke_002_address_space
+        subnet_spoke_002_test_name : env_table[env].subnet_spoke_002_test_name
+        subnet_spoke_002_test_address_space : env_table[env].subnet_spoke_002_test_address_space
+      }
+      dependsOn: [
+        vnet_hub
+        //route_table
+      ]
+    }
+
   //===Peering Modules
 
-    //Peering Module Spoke to Hub
+    //Peering Module Spoke 001 to Hub
     module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
       name: 'peering_module_spoke_to_hub'
       scope: resourceGroup(rg_01_name)     
@@ -609,8 +642,29 @@ param nicName string = '${vmName}-nic'
     }
 
 
-    // Peering Hub to Spoke
-    module peering 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
+    //Peering Module Spoke 002 to Hub
+    module peering_spoke_to_hub_02 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
+      name: 'peering_module_spoke_to_hub'
+      scope: resourceGroup(rg_01_name)     
+      params: {
+        peering_name_spoke_to_hub : peering_name_spoke_002_to_hub     // spoke 001 to hub peering name
+        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
+        spokeallowForwardedTraffic : spokeallowForwardedTraffic
+        spokeallowGatewayTransit : spokeallowGatewayTransit
+        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
+        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
+        spokepeeringState : spokepeeringState
+        spokeuseRemoteGateways : spokeuseRemoteGateways
+      }
+      dependsOn: [
+        vnet_spoke_002
+        //route_table
+      ] 
+    }
+
+
+    // Peering Hub to Spoke 001
+    module peering_to_hub_001 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
       name: 'peering_module_hub_to_spoke'
       //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
       scope: resourceGroup(rg_01_name)
@@ -630,7 +684,28 @@ param nicName string = '${vmName}-nic'
       ] 
     }
 
-  /*
+
+        // Peering Hub to Spoke 002
+        module peering_to_hub_002 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
+          name: 'peering_module_hub_to_spoke'
+          //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
+          scope: resourceGroup(rg_01_name)
+          params: {
+            peering_name_hub_to_spoke : peering_name_hub_to_spoke_002      // hub to spoke 001 peering name
+            vnet_spoke_id: vnet_spoke_001.outputs.vnet_spoke_001_id
+            huballowForwardedTraffic : huballowForwardedTraffic
+            huballowGatewayTransit : huballowGatewayTransit
+            huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
+            hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
+            hubpeeringState : hubpeeringState
+            hubuseRemoteGateways : hubuseRemoteGateways
+          }
+          dependsOn: [
+            vnet_hub
+            vnet_spoke_002
+          ] 
+        }
+  
   //Public IP Module    // Creates Public IP for Bastion
   module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
     name: 'public-ip-module'
@@ -667,7 +742,7 @@ param nicName string = '${vmName}-nic'
         publicIP
       ]
   } 
-*/
+
 
 //===========================================//
 //=========End of Network Modules=======//
@@ -893,3 +968,4 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     ]
   }
 
+//

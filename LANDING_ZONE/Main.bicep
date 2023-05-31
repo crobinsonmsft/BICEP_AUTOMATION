@@ -395,7 +395,8 @@ param adminUsername string = 'azureadmin'
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
-param vmName string = 'VM-${env_table[env].envPrefix}-001'
+param vmName_001 string = 'VM-${env_table[env].envPrefix}-001'
+param vmName_002 string = 'VM-${env_table[env].envPrefix}-002'
 
 
 @description('The Windows version for the VM. This will pick a fully patched image of this given Windows version.')
@@ -469,7 +470,8 @@ param OSVersion string = '2022-datacenter'
 param vmSize string = 'Standard_B2s'  // this image works with log insight agent.  Some images do not work with the agent
 
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
-param nicName string = '${vmName}-nic'
+param nicName_001 string = '${vmName_001}-nic'
+param nicName_002 string = '${vmName_002}-nic'
 
 
 //=========================================================================================//
@@ -623,7 +625,7 @@ param nicName string = '${vmName}-nic'
 
     //Peering Module Spoke 001 to Hub
     module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
-      name: 'peering_module_spoke_to_hub'
+      name: 'peering_module_spoke_001_to_hub'
       scope: resourceGroup(rg_01_name)     
       params: {
         peering_name_spoke_to_hub : peering_name_spoke_001_to_hub     // spoke 001 to hub peering name
@@ -644,7 +646,7 @@ param nicName string = '${vmName}-nic'
 
     //Peering Module Spoke 002 to Hub
     module peering_spoke_to_hub_02 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
-      name: 'peering_module_spoke_to_hub'
+      name: 'peering_module_spoke_002_to_hub'
       scope: resourceGroup(rg_01_name)     
       params: {
         peering_name_spoke_to_hub : peering_name_spoke_002_to_hub     // spoke 001 to hub peering name
@@ -665,7 +667,7 @@ param nicName string = '${vmName}-nic'
 
     // Peering Hub to Spoke 001
     module peering_to_hub_001 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
-      name: 'peering_module_hub_to_spoke'
+      name: 'peering_module_hub_to_spoke_001'
       //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
       scope: resourceGroup(rg_01_name)
       params: {
@@ -687,12 +689,12 @@ param nicName string = '${vmName}-nic'
 
         // Peering Hub to Spoke 002
         module peering_to_hub_002 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
-          name: 'peering_module_hub_to_spoke'
+          name: 'peering_module_hub_to_spoke_002'
           //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
           scope: resourceGroup(rg_01_name)
           params: {
             peering_name_hub_to_spoke : peering_name_hub_to_spoke_002      // hub to spoke 001 peering name
-            vnet_spoke_id: vnet_spoke_001.outputs.vnet_spoke_001_id
+            vnet_spoke_id: vnet_spoke_002.outputs.vnet_spoke_002_id
             huballowForwardedTraffic : huballowForwardedTraffic
             huballowGatewayTransit : huballowGatewayTransit
             huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
@@ -950,11 +952,11 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     params: {
       adminUsername: adminUsername
       adminpass: adminpass
-      vmName: vmName
+      vmName: vmName_001
       storageAccountName: storageAccountName
       OSVersion: OSVersion
       vmSize: vmSize
-      nicName: nicName
+      nicName: nicName_001
       tags: tags
       location: location
       nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
@@ -967,5 +969,32 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       solutions
     ]
   }
+
+
+  module vm_002 'Modules/Compute/VirtualMachines.bicep' = {
+    name: 'vm_002-module'
+    scope: resourceGroup(rg_03_name)
+    
+    params: {
+      adminUsername: adminUsername
+      adminpass: adminpass
+      vmName: vmName_002
+      storageAccountName: storageAccountName
+      OSVersion: OSVersion
+      vmSize: vmSize
+      nicName: nicName_002
+      tags: tags
+      location: location
+      nicSubnetId: vnet_spoke_002.outputs.subnet_spoke_002_id
+      workspace_id : law.outputs.workspace_id
+      workspace_id2 : law.outputs.workspaceIdOutput
+      workspace_key: law.outputs.workspaceKeyOutput
+    }
+    dependsOn: [
+      //monitoring_vm_memory
+      solutions
+    ]
+  }
+
 
 //

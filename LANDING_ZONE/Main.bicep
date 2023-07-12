@@ -11,6 +11,24 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 //=====================================================================================================//
 
 
+//What will we deploy?  Select to true or false for each
+param deployNSGflowLogs bool = true
+
+param deployBastion bool = true
+param deployVM1 bool = true
+param deployVM2 bool = false
+
+param recoveryServicesVault bool = false
+param vmBackupEnabled bool = false
+
+param logAnalyticsWorkspaceEnabled bool = true
+
+param vmLogAnalyticsSolutionsEnabled bool = false
+param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
+param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
+param vmMonitorMemoryEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
+param vmMonitorSystemState bool = false   // Cannot be True if Log Analytics Solutions is false
+
 //============================================================//
 //=======================Global Parameters====================//
 
@@ -25,65 +43,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     param env string = 'Development'  // Set this value
     param DeploymentDate string = utcNow('yyyy-MMM-dd')  //Let's grab the date and time for our resource deployments
 
-  //---------------------------------//
-  //---------ENVIRONMENT TABLE-------//
-    param env_table object = {
-      Production: {
-          envPrefix : 'PRD'
-          subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-        
-            //SPOKE 001 VNET Parameters
-            vnet_spoke_001_name : 'VNET-SPOKE-PRD-001'   //Desired name of the vnet
-            vnet_spoke_001_address_space : '10.1.0.0/20'          //Address space for entire vnet
-          
-            //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-PRD-001'             
-            subnet_spoke_001_test_name : 'TEST-VMs-PRD-001'
-            subnet_spoke_001_address_space : '10.1.0.0/24'           //Subnet address space for the spoke
-            subnet_spoke_001_test_address_space : '10.1.1.0/24'           //Subnet address space for the test spoke
-
-      }
-      Development: {
-          envPrefix : 'DEV'
-          subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-        
-            //SPOKE 001 VNET Parameters
-            vnet_spoke_001_name : 'VNET-SPOKE-DEV-001'   //Desired name of the vnet
-            vnet_spoke_001_address_space : '10.2.0.0/20'          //Address space for entire vnet
-          
-            //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-DEV-001'             
-            subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
-            subnet_spoke_001_address_space : '10.2.0.0/24'           //Subnet address space for the spoke
-            subnet_spoke_001_test_address_space : '10.2.1.0/24'           //Subnet address space for the test spoke
-
-            //SPOKE 002 VNET Parameters
-            vnet_spoke_002_name : 'VNET-SPOKE-DEV-002'   //Desired name of the vnet
-            vnet_spoke_002_address_space : '10.4.0.0/20'          //Address space for entire vnet
-          
-            //SPOKE 002 Subnet Parameters
-            subnet_spoke_002_name : 'WEB-VMs-DEV-002'             
-            subnet_spoke_002_test_name : 'TEST-VMs-DEV-002'
-            subnet_spoke_002_address_space : '10.4.0.0/24'           //Subnet address space for the spoke
-            subnet_spoke_002_test_address_space : '10.4.1.0/24'           //Subnet address space for the test spoke
-      }
-      Sandbox: {
-          envPrefix : 'SBX'
-          subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
-                  
-            //SPOKE 001 VNET Parameters
-            vnet_spoke_001_name : 'VNET-SPOKE-SBX-001'   //Desired name of the vnet
-            vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
-          
-            //SPOKE 001 Subnet Parameters
-            subnet_spoke_001_name : 'WEB-VMs-SBX-001'
-            subnet_spoke_001_test_name : 'TEST-VMs-SBX-001'  
-            subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
-            subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke
-      }
-    }
-
-
+  
   //Location
 
     @allowed([
@@ -155,33 +115,94 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   // This Resource Group will host the Network Watcher object
   param networkWatcherRGName string = 'NetworkWatcherRG'
 
-  //=====VNET Parameters=====//
+  //=====VNETS=====//
+  
 
-    //HUB VNET Parameters
-      param vnet_hub_name string = 'VNET-HUB-${env_table[env].envPrefix}'   //Desired name of the vnet
-      param vnet_hub_address_space string = '10.0.0.0/20'          //Address space for entire vnet
+    //SPOKE VNETS
 
-    //HUB Subnet Parameters
-        //Names
-          param subnet_hub_gw_name string = 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-          param subnet_hub_fw_name string = 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
-          param subnet_hub_bas_name string = 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-          param subnet_hub_ss_name string = 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
+      param env_table object = {
+        Production: {
+            envPrefix : 'PRD'
+            //subscription : '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+            subscription : subscription().subscriptionId //Current Subscription
+          
+              //SPOKE 001 VNET Parameters
+              vnet_spoke_001_name : 'VNET-SPOKE-PRD-001'   //Desired name of the vnet
+              vnet_spoke_001_address_space : '10.2.0.0/20'          //Address space for entire vnet
+            
+              //SPOKE 001 Subnet Parameters
+              subnet_spoke_001_name : 'WEB-VMs-PRD-001'             
+              subnet_spoke_001_test_name : 'TEST-VMs-PRD-001'
+              subnet_spoke_001_address_space : '10.2.0.0/24'           //Subnet address space for the WEB spoke
+              subnet_spoke_001_test_address_space : '10.2.1.0/24'           //Subnet address space for the test spoke
 
-        //Addresses
-          param subnet_hub_gw_adress_space string = '10.0.0.0/24'   //Subnet address space for Gateway Subnet
-          param subnet_hub_fw_address_space string = '10.0.1.0/24'  //Subnet address space for Azure Firewall Subnet
-          param subnet_hub_bas_address_space string = '10.0.2.0/24' //Subnet address space for Bastion Subnet
-          param subnet_hub_ss_address_space string = '10.0.3.0/24'  //Subnet address space for Public Subnet
+        }
+        Development: {
+            envPrefix : 'DEV'
+            //subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+            subscription : subscription().subscriptionId //Current Subscription
 
+            
+              //HUB VNET Parameters
+              vnet_hub_name : 'VNET-HUB-DEV'   //Desired name of the vnet
+              vnet_hub_address_space : '10.1.0.0/20'          //Address space for entire vnet
 
+                //HUB Subnet Parameters
+                  //Names
+                    subnet_hub_gw_name : 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
+                    subnet_hub_fw_name : 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
+                    subnet_hub_bas_name : 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
+                    subnet_hub_ss_name : 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
+
+                  //Addresses
+                    subnet_hub_gw_adress_space : '10.1.0.0/24'   //Subnet address space for Gateway Subnet
+                    subnet_hub_fw_address_space : '10.1.1.0/24'  //Subnet address space for Azure Firewall Subnet
+                    subnet_hub_bas_address_space : '10.1.2.0/24' //Subnet address space for Bastion Subnet
+                    subnet_hub_ss_address_space : '10.1.3.0/24'  //Subnet address space for Shared Services Subnet
+          
+              //SPOKE 001 VNET Parameters
+              vnet_spoke_001_name : 'VNET-SPOKE-DEV-001'   //Desired name of the vnet
+              vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
+            
+                //SPOKE 001 Subnet Parameters
+                subnet_spoke_001_name : 'WEB-VMs-DEV-001'             
+                subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
+                subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke
+
+              //SPOKE 002 VNET Parameters
+              vnet_spoke_002_name : 'VNET-SPOKE-DEV-002'   //Desired name of the vnet
+              vnet_spoke_002_address_space : '10.4.0.0/20'          //Address space for entire vnet
+            
+                //SPOKE 002 Subnet Parameters
+                subnet_spoke_002_name : 'WEB-VMs-DEV-002'             
+                subnet_spoke_002_test_name : 'TEST-VMs-DEV-002'
+                subnet_spoke_002_address_space : '10.4.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_002_test_address_space : '10.4.1.0/24'           //Subnet address space for the test spoke
+        }
+        Sandbox: {
+            envPrefix : 'SBX'
+            //subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
+            subscription : subscription().subscriptionId //Current Subscription
+                    
+              //SPOKE 001 VNET Parameters
+              vnet_spoke_001_name : 'VNET-SPOKE-SBX-001'   //Desired name of the vnet
+              vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
+            
+              //SPOKE 001 Subnet Parameters
+              subnet_spoke_001_name : 'WEB-VMs-SBX-001'
+              subnet_spoke_001_test_name : 'TEST-VMs-SBX-001'  
+              subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
+              subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke
+        }
+      }
 
 //=======Peering Parameters========//
 
-  param peering_name_hub_to_spoke_001 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
-  param peering_name_hub_to_spoke_002 string = '${vnet_hub_name}/${vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_002_name}'      // hub to spoke 002 peering name
-  param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${vnet_hub_name}'      // spoke 001 to hub peering name
-  param peering_name_spoke_002_to_hub string = '${env_table[env].vnet_spoke_002_name}/${env_table[env].vnet_spoke_002_name}-peering-to-${vnet_hub_name}'      // spoke 002 to hub peering name
+  param peering_name_hub_to_spoke_001 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
+  param peering_name_hub_to_spoke_002 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_002_name}'      // hub to spoke 002 peering name
+  param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 001 to hub peering name
+  param peering_name_spoke_002_to_hub string = '${env_table[env].vnet_spoke_002_name}/${env_table[env].vnet_spoke_002_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 002 to hub peering name
 
       // Hub to Spoke Params 
       param huballowForwardedTraffic bool = true
@@ -391,7 +412,7 @@ param adminUsername string = 'azureadmin'
 
 @description('Password for the Virtual Machine.')
 @minLength(12)
-//@secure()
+@secure()
 param adminpass string = 'Incredibl3#512ABC'
 
 @description('Name of the virtual machine.')
@@ -530,7 +551,7 @@ param nicName_002 string = '${vmName_002}-nic'
 
    
   //NSG Flow Logs
-    module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = {
+    module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = if (deployNSGflowLogs) {
       name: 'nsgFlow-module'
       //scope: resourceGroup(rg_01_name)
       scope: resourceGroup(networkWatcherRGName)
@@ -551,6 +572,7 @@ param nicName_002 string = '${vmName_002}-nic'
       ]
     }
    
+    
 
   //VNET HUB Module
   module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {
@@ -560,24 +582,26 @@ param nicName_002 string = '${vmName_002}-nic'
       tags: tags
       location: location
       bastion_nsg_id: nsg.outputs.bastion_nsg_id
-      //public_nsg_id: nsg.outputs.public_nsg_id
+      public_nsg_id: nsg.outputs.public_nsg_id
       private_nsg_id: nsg.outputs.private_nsg_id
-      vnet_hub_name: vnet_hub_name
-      vnet_hub_address_space : vnet_hub_address_space
-      subnet_hub_gw_name : subnet_hub_gw_name
-      subnet_hub_fw_name : subnet_hub_fw_name
-      subnet_hub_bas_name : subnet_hub_bas_name
-      subnet_ss_name : subnet_hub_ss_name
-      subnet_hub_gw_adress_space : subnet_hub_gw_adress_space
-      subnet_hub_fw_address_space : subnet_hub_fw_address_space
-      subnet_hub_bas_address_space : subnet_hub_bas_address_space
-      subnet_hub_ss_address_space : subnet_hub_ss_address_space
+      vnet_hub_name: env_table[env].vnet_hub_name
+      vnet_hub_address_space : env_table[env].vnet_hub_address_space
+      subnet_hub_gw_name : env_table[env].subnet_hub_gw_name
+      subnet_hub_fw_name : env_table[env].subnet_hub_fw_name
+      subnet_hub_bas_name : env_table[env].subnet_hub_bas_name
+      subnet_ss_name : env_table[env].subnet_hub_ss_name
+      subnet_hub_gw_adress_space : env_table[env].subnet_hub_gw_adress_space
+      subnet_hub_fw_address_space : env_table[env].subnet_hub_fw_address_space
+      subnet_hub_bas_address_space : env_table[env].subnet_hub_bas_address_space
+      subnet_hub_ss_address_space : env_table[env].subnet_hub_ss_address_space
     }
     dependsOn: [
       nsg
       //route_table
     ]
   }
+
+  
 
   //VNET Spoke 001 Module
   module vnet_spoke_001 'Modules/Network/VNet/VNet-Spoke-001.bicep' = {
@@ -620,6 +644,8 @@ param nicName_002 string = '${vmName_002}-nic'
         //route_table
       ]
     }
+
+    
 
   //===Peering Modules
 
@@ -707,14 +733,17 @@ param nicName_002 string = '${vmName_002}-nic'
             vnet_spoke_002
           ] 
         }
+
   
-  //Public IP Module    // Creates Public IP for Bastion
-  module publicIP 'Modules/Network/Public_IP/Public_IP.bicep' = {
-    name: 'public-ip-module'
+  //Bastion Host Module
+  module bastionHost 'Modules/Network/Bastion/bastion.bicep' = if (deployBastion) {
+    name: 'bastion-host-module'
     scope: resourceGroup(rg_01_name)
       params: {
         tags: tags
         location: location
+        bastionName: bastionName
+        bastionSubnetid: '${vnet_hub.outputs.vnet_hub_id}/subnets/${env_table[env].subnet_hub_bas_name}'
         publicIPAddressName: publicIPAddressName
         publicIPsku: publicIPsku
         publicIPAllocationMethod : publicIPAllocationMethod
@@ -722,26 +751,7 @@ param nicName_002 string = '${vmName_002}-nic'
         dnsLabelPrefix : dnsLabelPrefix
       }
       dependsOn: [
-        rg
-      ]
-  }
-  
-
-  
-  //Bastion Host Module
-  module bastionHost 'Modules/Network/Bastion/bastion.bicep' = {
-    name: 'bastion-host-module'
-    scope: resourceGroup(rg_01_name)
-      params: {
-        tags: tags
-        location: location
-        bastionName: bastionName
-        publicipid: publicIP.outputs.public_ip_id
-        bastionSubnetid: '${vnet_hub.outputs.vnet_hub_id}/subnets/${subnet_hub_bas_name}'
-      }
-      dependsOn: [
         vnet_spoke_001
-        publicIP
       ]
   } 
 
@@ -754,8 +764,8 @@ param nicName_002 string = '${vmName_002}-nic'
 //=======Start of Backup and Recovery Modules=======//
 //===========================================//
 
-/*
-  module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = {
+
+  module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = if (recoveryServicesVault) {
     name: 'rsv-module'
     scope: resourceGroup(rg_02_name)
     params: {
@@ -771,7 +781,7 @@ param nicName_002 string = '${vmName_002}-nic'
 
 
 
-  module backup 'Modules/BackUp/backup_policies.bicep' = {
+  module backup 'Modules/BackUp/backup_policies.bicep' =  if (vmBackupEnabled) {
     name: 'backup-policies-module'
     scope: resourceGroup(rg_02_name)
     params: {
@@ -780,13 +790,12 @@ param nicName_002 string = '${vmName_002}-nic'
       tags: tags
       BackupType: BackupType
       backupPolicyName: backupPolicyName
-      env_table: env_table[env].envPrefix
+      env_prefix: env_table[env]
     }
     dependsOn: [
       rsv_001
     ]
   }
-  */
 //===========================================//
 //====End of Backup and Recovery Modules=====//
 //===========================================//
@@ -795,8 +804,10 @@ param nicName_002 string = '${vmName_002}-nic'
 //=======Start of Monitoring and Alerting Modules======//  
 //=====================================================//
 
+
+
 //Action Group to direct SMTP and SMS alerts to
-module action_group 'Modules/Monitoring/action_group.bicep' = {
+module action_group 'Modules/Monitoring/action_group.bicep' = if (logAnalyticsWorkspaceEnabled) {
   name: 'action_group-module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -812,7 +823,7 @@ module action_group 'Modules/Monitoring/action_group.bicep' = {
 
 
 //Log Analytics Workspace
-module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
+module law 'Modules/Log_Analytics/LogAnalytics.bicep' = if (logAnalyticsWorkspaceEnabled) {
   name: 'law-module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -826,8 +837,9 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = {
     ]
 }
 
+
 //Log Analytics Solutions Module
-module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
+module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
   name: 'vm-insights-module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -844,9 +856,9 @@ module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = {
       law
     ]
 }
-/*
+
 // VM Monitoring CPU
-module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
+module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = if (vmMonitorCPUenabled) {
   name: 'monitoring_cpu_module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -867,7 +879,7 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = {
 }
 
 // VM Monitoring System State
-module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = {
+module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = if (vmMonitorSystemState) {
   name: 'monitoring_vm_system_state_module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -891,7 +903,7 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
 }
 
 // VM Monitoring VM Memory
-module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
+module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = if (vmMonitorMemoryEnabled) {
   name: 'monitoring_vm_memory_module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -915,7 +927,7 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = {
 }
 
 
-module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep' = {
+module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep' = if (vmMonitorDiskEnabled) {
   name: 'monitoring_vm_disk_module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -935,7 +947,8 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     solutions
   ]
 }
-*/
+
+
 //==============================================//
 //====End of Monitoring and Alerting Modules====//
 //==============================================//
@@ -945,7 +958,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //===========================================//
 
 
-  module vm_001 'Modules/Compute/VirtualMachines.bicep' = {
+  module vm_001 'Modules/Compute/VirtualMachines.bicep' = if (deployVM1) {
     name: 'vm_001-module'
     scope: resourceGroup(rg_03_name)
     
@@ -965,13 +978,14 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      //monitoring_vm_memory
+      monitoring_vm_memory
       solutions
+      nsg
     ]
   }
 
 
-  module vm_002 'Modules/Compute/VirtualMachines.bicep' = {
+  module vm_002 'Modules/Compute/VirtualMachines.bicep' = if (deployVM2) {
     name: 'vm_002-module'
     scope: resourceGroup(rg_03_name)
     
@@ -991,10 +1005,12 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      //monitoring_vm_memory
+      nsg
+      monitoring_vm_memory
       solutions
     ]
   }
 
 
 //
+

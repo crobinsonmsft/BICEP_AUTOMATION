@@ -16,7 +16,6 @@ param nicSubnetId string
 param workspace_id string
 param workspace_id2 string
 param workspace_key string
-//param dnsLabelPrefixvm string
 
 /*
 If you want to use a loop to create a specific number of resources, you can leverage the range() function, which creates an array of numbers.
@@ -182,7 +181,7 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
   properties: {
     workspaceId: workspace_id
     logs: [
-      /*
+      
       {
         category: 'AuditEvent'
         enabled: true
@@ -191,7 +190,7 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
           enabled: true
         }
       }
-      */
+      
 
     ]
     metrics: [
@@ -202,3 +201,6 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
     ]
   }
 }
+
+
+

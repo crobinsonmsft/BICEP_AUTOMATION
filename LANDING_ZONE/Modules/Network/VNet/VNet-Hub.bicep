@@ -11,7 +11,7 @@ param location string
 //nsg params
 
 param bastion_nsg_id string
-//param public_nsg_id string
+param public_nsg_id string
 param private_nsg_id string
 
 
@@ -110,6 +110,7 @@ resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
       }
+      
       {
         name: subnet_ss_name
         properties: {

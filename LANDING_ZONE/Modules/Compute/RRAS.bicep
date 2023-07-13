@@ -4,7 +4,13 @@ param vmName string
 
 // Constructing the PowerShell commands to execute once VM is running
 //var RRASInstallandConfigure = 'powershell.exe -ExecutionPolicy Unrestricted -File RRAS-Configuration.ps1 -localIP 172.1.0.4 -localSubnet "172.1.0.0/16" -peerPublicIP00 ${vHubVpnGatewayPublicIp00} -psk "rolightn3494" -peerPublicIP01 ${vHubVpnGatewayPublicIp01}'
-var RRASInstallandConfigure = 'powershell.exe Install-WindowsFeature -name Web-Server -IncludeManagementTools && powershell.exe Add-Content -Path 'C:\\inetpub\\wwwroot\\iisstart.htm' -Value $('Hello World from ' + $env:computername)'
+var RRASInstallandConfigure = 'powershell.exe Install-WindowsFeature -name Web-Server -IncludeManagementTools'
+
+
+
+
+// VM Extensions Here
+
 resource RRASInstall 'Microsoft.Compute/virtualMachines/extensions@2021-03-01' = {
   name: '${vmName}/InstallRRAS'
   location: location

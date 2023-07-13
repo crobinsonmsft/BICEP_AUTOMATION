@@ -84,6 +84,14 @@ resource vm_001 'Microsoft.Compute/virtualMachines@2022-03-01' = {
       computerName: vmName
       adminUsername: adminUsername
       adminPassword: adminpass
+      windowsConfiguration: {
+        enableAutomaticUpdates: true
+        provisionVMAgent: true
+        patchSettings: {
+          enableHotpatching: false
+          patchMode: 'AutomaticByOS'
+        }
+      }
     }
     storageProfile: {
       imageReference: {
@@ -141,6 +149,9 @@ var MmaExtensionType = ((toLower(osType) == 'windows') ? 'MicrosoftMonitoringAge
 var MmaExtensionVersion = ((toLower(osType) == 'windows') ? '1.0' : '1.4')
 
 
+
+//VM EXTENSIONS
+
 resource daExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' = {
   parent: vm_001
   name: DaExtensionName
@@ -174,8 +185,9 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
 }
 
 
+/*
 
-resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-preview' = {
+resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: vm_001
   name: 'vm_diagnostic_settings_01'
   properties: {
@@ -183,7 +195,7 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
     logs: [
       
       {
-        category: 'AuditEvent'
+        categoryGroup: 'allLogs'
         enabled: true
         retentionPolicy: {
           days: 90
@@ -202,5 +214,4 @@ resource diagnosticSetting 'Microsoft.insights/diagnosticSettings@2017-05-01-pre
   }
 }
 
-
-
+*/

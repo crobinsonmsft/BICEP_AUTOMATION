@@ -1012,5 +1012,16 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
   }
 
 
-//
+//VM Post deployment actions
+module vmPostDeploymentScript_01 'Modules/Compute/RRAS.bicep' = if (deployVM1) {
+  name: 'vm-post-deployment-script-module'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    vmName: vmName_001
+    location: location
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
 

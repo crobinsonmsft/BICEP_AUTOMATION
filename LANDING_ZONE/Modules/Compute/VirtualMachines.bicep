@@ -16,6 +16,7 @@ param nicSubnetId string
 param workspace_id string
 param workspace_id2 string
 param workspace_key string
+param userAssignedIdentityName string
 
 /*
 If you want to use a loop to create a specific number of resources, you can leverage the range() function, which creates an array of numbers.
@@ -134,6 +135,67 @@ output vm_001_id string = vm_001.id
 
 
 
+// create user assigned managed identity
+resource uami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: userAssignedIdentityName
+  location: location
+  tags: tags
+}
+
+output uami_id string = uami.id
+
+/*
+// create role assignment
+//var AMA_USER_ROLE_GUID = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+
+//Add VM Contributor Role
+resource roleAssignmentvmcontributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid('SecretsUser')
+  properties: {
+    principalId: uami.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'd73bb868-a0df-4d4d-bd69-98a00b01fccb' ) //vm contributor
+  }
+}
+
+//Add Azure Connected Machine Resource Administrator
+resource roleAssignmentazureconnmachreadmin 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid('SecretsUser')
+  properties: {
+    principalId: uami.properties.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'cd570a14-e51a-42ad-bac8-bafd67325302' ) //vm contributor
+  }
+}
+
+
+//Deploy AMA Agent
+resource windowsAgent 'Microsoft.Compute/virtualMachines/extensions@2023-03-01' = {
+  name: '${vmName}/AzureMonitorWindowsAgent'
+  location: location
+  properties: {
+    publisher: 'Microsoft.Azure.Monitor'
+    type: 'AzureMonitorWindowsAgent'
+    typeHandlerVersion: '1.0'
+    autoUpgradeMinorVersion: true
+    enableAutomaticUpgrade: true
+    settings: {
+      authentication: {
+        managedIdentity: {
+          'identifier-name': 'mi_res_id'
+          'identifier-value': uami.id
+        }
+      }
+    }
+  }
+}
+
+
+//Azure Connected Machine Resource Administrator
+
+*/
+
+
 //=========================//
 //Onboard to VM Insights
 //=========================//
@@ -185,7 +247,7 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
 }
 
 
-/*
+
 
 resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: vm_001
@@ -214,4 +276,4 @@ resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
   }
 }
 
-*/
+

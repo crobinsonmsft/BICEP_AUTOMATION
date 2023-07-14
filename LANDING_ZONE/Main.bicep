@@ -12,22 +12,28 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 
 //What will we deploy?  Select to true or false for each
-param deployNSGflowLogs bool = true
+      param deployNSGflowLogs bool = false
 
-param deployBastion bool = true
-param deployVM1 bool = true
-param deployVM2 bool = false
+      //Virtual Machine Options
+      param deployBastion bool = true
+      param deployVM1 bool = true
+      param deployVM2 bool = false
 
-param recoveryServicesVault bool = false
-param vmBackupEnabled bool = false
+        //Post Deployment Software Installs
+        param IISdeployEnabled bool = true
+        param outputdeployEnabled bool = true
 
-param logAnalyticsWorkspaceEnabled bool = true
+      //Backups and Recovery
+      param recoveryServicesVault bool = false
+      param vmBackupEnabled bool = false
 
-param vmLogAnalyticsSolutionsEnabled bool = false
-param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
-param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
-param vmMonitorMemoryEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
-param vmMonitorSystemState bool = false   // Cannot be True if Log Analytics Solutions is false
+      //Logging and Monitoring
+      param logAnalyticsWorkspaceEnabled bool = true
+      param vmLogAnalyticsSolutionsEnabled bool = false
+      param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
+      param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
+      param vmMonitorMemoryEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
+      param vmMonitorSystemState bool = false   // Cannot be True if Log Analytics Solutions is false
 
 //============================================================//
 //=======================Global Parameters====================//
@@ -493,6 +499,9 @@ param vmSize string = 'Standard_B2s'  // this image works with log insight agent
 param storageAccountName string = 'bootdiags${uniqueString(subscription().subscriptionId)}'
 param nicName_001 string = '${vmName_001}-nic'
 param nicName_002 string = '${vmName_002}-nic'
+
+//Managed Identity Params
+param userAssignedIdentityName string = 'UAMIUser'
 
 
 //=========================================================================================//
@@ -973,6 +982,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       tags: tags
       location: location
       nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      userAssignedIdentityName: userAssignedIdentityName
       workspace_id : law.outputs.workspace_id
       workspace_id2 : law.outputs.workspaceIdOutput
       workspace_key: law.outputs.workspaceKeyOutput
@@ -1003,6 +1013,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       workspace_id : law.outputs.workspace_id
       workspace_id2 : law.outputs.workspaceIdOutput
       workspace_key: law.outputs.workspaceKeyOutput
+      userAssignedIdentityName: userAssignedIdentityName
     }
     dependsOn: [
       nsg
@@ -1012,9 +1023,10 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
   }
 
 
-//VM Post deployment actions
-module vmPostDeploymentScript_01 'Modules/Compute/RRAS.bicep' = if (deployVM1) {
-  name: 'vm-post-deployment-script-module'
+//VM Post deployment Customizations
+
+module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeployEnabled) {
+  name: 'vm-post-deployment-script-module-IIS'
   scope: resourceGroup(rg_03_name)
   params: {
     vmName: vmName_001
@@ -1024,4 +1036,32 @@ module vmPostDeploymentScript_01 'Modules/Compute/RRAS.bicep' = if (deployVM1) {
     vm_001
   ]
 }
+
+module vmPostDeploymentScript_02_output 'Modules/Software/output.bicep' = if (outputdeployEnabled) {
+  name: 'vm-post-deployment-script-module-output'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    vmName: vmName_001
+    location: location
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
+
+/*
+module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (deployVM1) {
+  name: 'userAssignedIdentity-module'
+  scope: resourceGroup(rg_03_name)
+  params: {
+   location: location
+   userAssignedIdentityName: userAssignedIdentityName
+   tags: tags
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
+*/
+
 

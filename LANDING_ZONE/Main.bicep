@@ -13,22 +13,24 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
+      param azureFirewallDeploy bool = false
 
       //Virtual Machine Options
-      param deployBastion bool = true
+      param deployBastion bool = false
       param deployVM1 bool = true
       param deployVM2 bool = false
 
         //Post Deployment Software Installs
-        param IISdeployEnabled bool = true
-        param outputdeployEnabled bool = true
+        param IISdeployEnabled bool = false
+        param SSMSdeployEnabled bool = false
+        param outputdeployEnabled bool = false
 
       //Backups and Recovery
       param recoveryServicesVault bool = false
-      param vmBackupEnabled bool = false
+      param vmBackupEnabled bool = false  //Cannot be True if Recovery Services Vault is false
 
       //Logging and Monitoring
-      param logAnalyticsWorkspaceEnabled bool = true
+      param logAnalyticsWorkspaceEnabled bool = false
       param vmLogAnalyticsSolutionsEnabled bool = false
       param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
       param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
@@ -120,6 +122,13 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   // Network Watcher Resource Group Name
   // This Resource Group will host the Network Watcher object
   param networkWatcherRGName string = 'NetworkWatcherRG'
+
+  //======Firewall Parameters========//
+
+  param firewallName string = 'FIREWALL-${env_table[env].envPrefix}-001'
+
+
+
 
   //=====VNETS=====//
   
@@ -764,6 +773,22 @@ param userAssignedIdentityName string = 'UAMIUser'
       ]
   } 
 
+//Azure Firewall Module
+module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewallDeploy) {
+  name: 'azure-firewall-module'
+  scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: location
+      firewallName: firewallName
+      fw_vnet: vnet_hub.outputs.vnet_hub_id
+    }
+    dependsOn: [
+      vnet_spoke_001
+    ]
+} 
+
+
 
 //===========================================//
 //=========End of Network Modules=======//
@@ -1039,6 +1064,18 @@ module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeplo
 
 module vmPostDeploymentScript_02_output 'Modules/Software/output.bicep' = if (outputdeployEnabled) {
   name: 'vm-post-deployment-script-module-output'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    vmName: vmName_001
+    location: location
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
+
+module vmPostDeploymentScript_03_SSMS 'Modules/Software/SQLServerMgtStudio.bicep' = if (SSMSdeployEnabled) {
+  name: 'vm-post-deployment-script-module-ssms'
   scope: resourceGroup(rg_03_name)
   params: {
     vmName: vmName_001

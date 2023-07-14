@@ -9,10 +9,10 @@ var cmd = 'powershell.exe -ExecutionPolicy Unrestricted -File test.ps1'
 
 
 
-//=========== Start IIS Install ==========//
+//=========== Start SSMS Install ==========//
 
 resource cmd_run 'Microsoft.Compute/virtualMachines/extensions@2023-03-01' = {
-  name: '${vmName}/runpowershell'
+  name: '${vmName}/SSMS'
   location: location
   properties: {
     publisher: 'Microsoft.Compute'
@@ -21,7 +21,7 @@ resource cmd_run 'Microsoft.Compute/virtualMachines/extensions@2023-03-01' = {
     autoUpgradeMinorVersion: true
     settings: {
       fileUris: [
-        'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/test.ps1'
+        'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/SSMS.ps1'
       ]
       commandToExecute: cmd
     } 

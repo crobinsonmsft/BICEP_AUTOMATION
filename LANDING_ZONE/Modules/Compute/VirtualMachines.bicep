@@ -248,7 +248,7 @@ resource mmaExtension 'Microsoft.Compute/virtualMachines/extensions@2022-03-01' 
 
 
 
-
+/*
 resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
   scope: vm_001
   name: 'vm_diagnostic_settings_01'
@@ -275,5 +275,5 @@ resource diagnosticSetting 'Microsoft.Insights/diagnosticSettings@2021-05-01-pre
     ]
   }
 }
-
+*/
 

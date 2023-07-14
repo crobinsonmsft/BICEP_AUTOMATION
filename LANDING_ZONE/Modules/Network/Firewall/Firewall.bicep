@@ -5,10 +5,8 @@
 
 param tags object
 param location string
-param firewallName string = env_prefix[env]-FIREWALL
-
-@description('Virtual network name')
-param virtualNetworkName string = vnet_hub_id
+param firewallName string
+param fw_vnet string
 
 
 @description('Number of public IP addresses for the Azure Firewall')
@@ -29,7 +27,7 @@ var azureFirewallSubnetPrefix = '10.10.0.0/25'
 var publicIPNamePrefix = 'publicIP'
 var azurepublicIpname = publicIPNamePrefix
 var azureFirewallSubnetName = 'AzureFirewallSubnet'
-var azureFirewallSubnetId = resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, azureFirewallSubnetName)
+var azureFirewallSubnetId = resourceId('Microsoft.Network/virtualNetworks/subnets', fw_vnet, azureFirewallSubnetName)
 var azureFirewallPublicIpId = resourceId('Microsoft.Network/publicIPAddresses', publicIPNamePrefix)
 var azureFirewallIpConfigurations = [for i in range(0, numberOfPublicIPAddresses): {
   name: 'IpConf${i}'
@@ -66,29 +64,7 @@ resource infraIpGroup 'Microsoft.Network/ipGroups@2022-01-01' = {
   }
 }
 
-resource vnet 'Microsoft.Network/virtualNetworks@2022-01-01' = {
-  name: virtualNetworkName
-  location: location
-  tags: {
-    displayName: virtualNetworkName
-  }
-  properties: {
-    addressSpace: {
-      addressPrefixes: [
-        vnetAddressPrefix
-      ]
-    }
-    subnets: [
-      {
-        name: azureFirewallSubnetName
-        properties: {
-          addressPrefix: azureFirewallSubnetPrefix
-        }
-      }
-    ]
-    enableDdosProtection: false
-  }
-}
+
 
 resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for i in range(0, numberOfPublicIPAddresses): {
   name: '${azurepublicIpname}${i + 1}'
@@ -225,14 +201,6 @@ resource firewall 'Microsoft.Network/azureFirewalls@2022-11-01' = {
   location: location
   tags: tags
   zones: ((length(availabilityZones) == 0) ? null : availabilityZones)
-  dependsOn: [
-    vnet
-    publicIpAddress
-    workloadIpGroup
-    infraIpGroup
-    networkRuleCollectionGroup
-    applicationRuleCollectionGroup
-  ]
   properties: {
     ipConfigurations: azureFirewallIpConfigurations
     firewallPolicy: {

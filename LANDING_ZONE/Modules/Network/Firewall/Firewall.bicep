@@ -6,6 +6,8 @@
 param tags object
 param location string
 param firewallName string
+param firewallPolicyName string
+param azurepublicIpname string
 param fw_vnet string
 
 
@@ -20,15 +22,11 @@ param availabilityZones array = []
 
 param infraIpGroupName string = '${location}-infra-ipgroup-${uniqueString(resourceGroup().id)}'
 param workloadIpGroupName string = '${location}-workload-ipgroup-${uniqueString(resourceGroup().id)}'
-param firewallPolicyName string = '${firewallName}-firewallPolicy'
 
-var vnetAddressPrefix = '10.10.0.0/24'
-var azureFirewallSubnetPrefix = '10.10.0.0/25'
-var publicIPNamePrefix = 'publicIP'
-var azurepublicIpname = publicIPNamePrefix
-var azureFirewallSubnetName = 'AzureFirewallSubnet'
-var azureFirewallSubnetId = resourceId('Microsoft.Network/virtualNetworks/subnets', fw_vnet, azureFirewallSubnetName)
-var azureFirewallPublicIpId = resourceId('Microsoft.Network/publicIPAddresses', publicIPNamePrefix)
+
+
+var azureFirewallSubnetId = resourceId('Microsoft.Network/virtualNetworks/subnets', fw_vnet, 'AzureFirewallSubnet')
+var azureFirewallPublicIpId = resourceId('Microsoft.Network/publicIPAddresses', azurepublicIpname)
 var azureFirewallIpConfigurations = [for i in range(0, numberOfPublicIPAddresses): {
   name: 'IpConf${i}'
   properties: {
@@ -41,7 +39,7 @@ var azureFirewallIpConfigurations = [for i in range(0, numberOfPublicIPAddresses
 
 //===============End Params===============//
 
-
+/*
 resource workloadIpGroup 'Microsoft.Network/ipGroups@2022-01-01' = {
   name: workloadIpGroupName
   location: location
@@ -63,7 +61,7 @@ resource infraIpGroup 'Microsoft.Network/ipGroups@2022-01-01' = {
     ]
   }
 }
-
+*/
 
 
 resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for i in range(0, numberOfPublicIPAddresses): {
@@ -85,7 +83,7 @@ resource firewallPolicy 'Microsoft.Network/firewallPolicies@2022-01-01'= {
     threatIntelMode: 'Alert'
   }
 }
-
+/*
 resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2022-01-01' = {
   parent: firewallPolicy
   name: 'DefaultNetworkRuleCollectionGroup'
@@ -195,6 +193,8 @@ resource applicationRuleCollectionGroup 'Microsoft.Network/firewallPolicies/rule
     ]
   }
 }
+
+*/
 
 resource firewall 'Microsoft.Network/azureFirewalls@2022-11-01' = {
   name: firewallName

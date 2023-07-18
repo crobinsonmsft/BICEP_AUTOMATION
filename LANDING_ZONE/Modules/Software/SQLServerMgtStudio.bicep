@@ -3,7 +3,7 @@
 //=================Params=================//
 param location string
 param vmName string
-var cmd = 'powershell.exe -ExecutionPolicy Unrestricted -File test.ps1'
+var cmd = 'powershell.exe -ExecutionPolicy Unrestricted -File SSMS.ps1'
 
 ///===============End Params===============//
 

@@ -22,16 +22,17 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
         //Post Deployment Software Installs
         param IISdeployEnabled bool = false
-        param SSMSdeployEnabled bool = false
+        param SSMSdeployEnabled bool = true
         param outputdeployEnabled bool = false
 
       //Backups and Recovery
-      param recoveryServicesVault bool = false
+      param recoveryServicesVault bool = false    
       param vmBackupEnabled bool = false  //Cannot be True if Recovery Services Vault is false
 
       //Logging and Monitoring
-      param logAnalyticsWorkspaceEnabled bool = false
-      param vmLogAnalyticsSolutionsEnabled bool = false
+      param actionGroupEnabled bool = false
+      param logAnalyticsWorkspaceEnabled bool = true    // Must be true if VM provisioning is true
+      param vmLogAnalyticsSolutionsEnabled bool = true
       param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
       param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
       param vmMonitorMemoryEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
@@ -126,6 +127,8 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   //======Firewall Parameters========//
 
   param firewallName string = 'FIREWALL-${env_table[env].envPrefix}-001'
+  param firewallPolicyName string = 'FIREWALL-POLICY-${env_table[env].envPrefix}-001'
+  param azurepublicIpname string = 'PUB-IP-AZUREFIREWALL-00'
 
 
 
@@ -536,12 +539,13 @@ param userAssignedIdentityName string = 'UAMIUser'
       params: {
         tags: tags
         location: location
-        rg_01_name: rg_01_name
-        rg_02_name: rg_02_name
-        rg_03_name: rg_03_name
+        rg_01_name: rg_01_name      //CONNECTIVITY - NETWORK CONSTRUCTS GO HERE
+        rg_02_name: rg_02_name      //MANAGEMENT - MANAGEMENT RESOURCES GO HERE
+        rg_03_name: rg_03_name      //RESOURCE - RESOURCES SUCH AS SERVERS AND STORAGE ACCOUNTS GO HERE
         network_watcher_name: networkWatcherRGName
       }
   }
+
 //===========================================//
 //======End of Resource Group Modules====//
 //===========================================//
@@ -773,6 +777,7 @@ param userAssignedIdentityName string = 'UAMIUser'
       ]
   } 
 
+
 //Azure Firewall Module
 module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewallDeploy) {
   name: 'azure-firewall-module'
@@ -781,7 +786,9 @@ module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewa
       tags: tags
       location: location
       firewallName: firewallName
-      fw_vnet: vnet_hub.outputs.vnet_hub_id
+      firewallPolicyName: firewallPolicyName
+      azurepublicIpname: azurepublicIpname
+      fw_vnet: env_table[env].vnet_hub_name
     }
     dependsOn: [
       vnet_spoke_001
@@ -830,6 +837,8 @@ module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewa
       rsv_001
     ]
   }
+
+
 //===========================================//
 //====End of Backup and Recovery Modules=====//
 //===========================================//
@@ -841,7 +850,7 @@ module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewa
 
 
 //Action Group to direct SMTP and SMS alerts to
-module action_group 'Modules/Monitoring/action_group.bicep' = if (logAnalyticsWorkspaceEnabled) {
+module action_group 'Modules/Monitoring/action_group.bicep' = if (actionGroupEnabled) {
   name: 'action_group-module'
   scope: resourceGroup(rg_02_name)
   params: {
@@ -867,30 +876,11 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = if (logAnalyticsWorkspac
     workspaceName: workspaceName
   }
   dependsOn: [
-      action_group
+      rg
     ]
 }
 
-
-//Log Analytics Solutions Module
-module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
-  name: 'vm-insights-module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    tags: tags
-    location: location
-    location_2: location_2
-    workspaceName: workspaceName
-    vmInsights : vmInsights_
-    vmUpdates: vmUpdates_
-    workspace_id : law.outputs.workspace_id
-    automationAccountName: automationAccountName
-  }
-  dependsOn: [
-      law
-    ]
-}
-
+/*
 // VM Monitoring CPU
 module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = if (vmMonitorCPUenabled) {
   name: 'monitoring_cpu_module'
@@ -908,9 +898,11 @@ module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = if (vmMonito
     vmCpuPercentageAlert_targetResourceRegion : vmCpuPercentageAlert_targetResourceRegion
   }
   dependsOn: [
-    solutions
+    action_group
   ]
 }
+
+
 
 // VM Monitoring System State
 module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = if (vmMonitorSystemState) {
@@ -932,10 +924,10 @@ module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.b
     vmSysStateAlert_timeGenerated : vmSysStateAlert_timeGenerated
   }
   dependsOn: [
-    solutions
+    action_group
   ]
 }
-
+ 
 // VM Monitoring VM Memory
 module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = if (vmMonitorMemoryEnabled) {
   name: 'monitoring_vm_memory_module'
@@ -956,7 +948,7 @@ module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = if 
     vmMemoryPercentageAlert_overrideQueryTimeRange : vmMemoryPercentageAlert_overrideQueryTimeRange
   }
   dependsOn: [
-    solutions
+    action_group
   ]
 }
 
@@ -978,9 +970,10 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     vmDiskUtilizationAlert_percentageVal : vmDiskUtilizationAlert_percentageVal
   }
   dependsOn: [
-    solutions
+    action_group
   ]
 }
+*/
 
 
 //==============================================//
@@ -1013,8 +1006,6 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      monitoring_vm_memory
-      solutions
       nsg
     ]
   }
@@ -1042,8 +1033,6 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     }
     dependsOn: [
       nsg
-      monitoring_vm_memory
-      solutions
     ]
   }
 
@@ -1102,3 +1091,23 @@ module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (dep
 */
 
 
+
+
+//Log Analytics Solutions Module
+module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
+  name: 'vm-insights-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    tags: tags
+    location: location
+    location_2: location_2
+    workspaceName: workspaceName
+    vmInsights : vmInsights_
+    vmUpdates: vmUpdates_
+    workspace_id : law.outputs.workspace_id
+    automationAccountName: automationAccountName
+  }
+  dependsOn: [
+      law
+    ]
+}

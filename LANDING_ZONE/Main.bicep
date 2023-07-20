@@ -207,7 +207,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
                 subnet_spoke_DMZ_name : 'WEB-VMs-DEV-DMZ'             
                 subnet_spoke_DMZ_APP_GW_name : 'AppGatewaySubnet'
                 subnet_spoke_DMZ_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_DMZ_test_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_DMZ_APP_GW_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
 
 
         }
@@ -533,7 +533,7 @@ param nicName_002 string = '${vmName_002}-nic'
 param userAssignedIdentityName string = 'UAMIUser'
 
 //Common Storage params
-param storageAccountName_01 string = 'dsc_test'
+param storageAccountName_01 string = 'dscstorage001'
 param containerName_01 string = 'dsc_blob_container'
 
 

@@ -1,28 +1,40 @@
+//=======This bicep file Installs Windows Features using DSC=======//
+
+//=================Params=================//
+param location string
+param vmName string
+var cmd = 'powershell.exe -ExecutionPolicy Unrestricted -File test.ps1'
+
+///===============End Params===============//
 
 
 
+//=========== Start DSC Features Install ==========//
 
 
-
-resource dscExtension 'Microsoft.Compute/virtualMachines/extensions@2018-10-01' = {
+resource domainControllerConfiguration 'Microsoft.Compute/virtualMachines/extensions@2021-11-01' = {
+  name: '${vmName}/Microsoft.Powershell.DSC'
   location: location
-  parent: vm
-  name: 'Microsoft.Powershell.DSC'
   properties: {
     publisher: 'Microsoft.Powershell'
     type: 'DSC'
     typeHandlerVersion: '2.77'
     autoUpgradeMinorVersion: true
     settings: {
-      wmfVersion: 'latest'
-      configuration: {
-        url: '${stg.properties.primaryEndpoints.blob}${containerName}/common.ps1.zip' 
-        script: 'common.ps1' 
-        function: 'Common' 
+      ModulesUrl: 'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/MgmtTools.ps1.zip'
+      ConfigurationFunction: 'MgmtTools.ps1\\Deploy-DomainServices'
+      Properties: {
+        domainFQDN: domainFQDN
+        adminCredential: {
+          UserName: adminUsername
+          Password: 'PrivateSettingsRef:adminPassword'
+        }
       }
-      configurationArguments: {}
     }
     protectedSettings: {
-      configurationUrlSasToken: '?${_artifactsLocationSasToken}' 
+      Items: {
+          adminPassword: adminPassword
+      }
     }
   }
+}

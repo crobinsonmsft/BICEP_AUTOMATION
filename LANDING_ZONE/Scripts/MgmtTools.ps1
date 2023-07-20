@@ -21,3 +21,5 @@ Configuration WebServerConfiguration
     }
   }
 }
+
+#Publish-AzVMDscConfiguration .\LANDING_ZONE\Scripts\MgmtTools.ps1 -OutputArchivePath .\LANDING_ZONE\Scripts\MgmtTools.ps1.zip

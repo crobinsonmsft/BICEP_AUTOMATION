@@ -14,6 +14,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
       param azureFirewallDeploy bool = false
+      param storageCommonDeploy bool = true
 
       //Virtual Machine Options
       param deployBastion bool = false
@@ -22,8 +23,9 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
         //Post Deployment Software Installs
         param IISdeployEnabled bool = false
-        param SSMSdeployEnabled bool = true
+        param SSMSdeployEnabled bool = false
         param outputdeployEnabled bool = false
+        param MgmtToolsDeploy bool = false
 
       //Backups and Recovery
       param recoveryServicesVault bool = false    
@@ -131,8 +133,6 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   param azurepublicIpname string = 'PUB-IP-AZUREFIREWALL-00'
 
 
-
-
   //=====VNETS=====//
   
 
@@ -163,7 +163,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             
               //HUB VNET Parameters
               vnet_hub_name : 'VNET-HUB-DEV'   //Desired name of the vnet
-              vnet_hub_address_space : '10.1.0.0/20'          //Address space for entire vnet
+              vnet_hub_address_space : '10.50.0.0/20'          //Address space for entire vnet
 
                 //HUB Subnet Parameters
                   //Names
@@ -173,30 +173,43 @@ targetScope = 'subscription'        // We will deploy these modules against our 
                     subnet_hub_ss_name : 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
 
                   //Addresses
-                    subnet_hub_gw_adress_space : '10.1.0.0/24'   //Subnet address space for Gateway Subnet
-                    subnet_hub_fw_address_space : '10.1.1.0/24'  //Subnet address space for Azure Firewall Subnet
-                    subnet_hub_bas_address_space : '10.1.2.0/24' //Subnet address space for Bastion Subnet
-                    subnet_hub_ss_address_space : '10.1.3.0/24'  //Subnet address space for Shared Services Subnet
+                    subnet_hub_gw_adress_space : '10.50.0.0/24'   //Subnet address space for Gateway Subnet
+                    subnet_hub_fw_address_space : '10.50.1.0/24'  //Subnet address space for Azure Firewall Subnet
+                    subnet_hub_bas_address_space : '10.50.2.0/24' //Subnet address space for Bastion Subnet
+                    subnet_hub_ss_address_space : '10.50.3.0/24'  //Subnet address space for Shared Services Subnet
           
               //SPOKE 001 VNET Parameters
               vnet_spoke_001_name : 'VNET-SPOKE-DEV-001'   //Desired name of the vnet
-              vnet_spoke_001_address_space : '10.3.0.0/20'          //Address space for entire vnet
+              vnet_spoke_001_address_space : '10.51.0.0/20'          //Address space for entire vnet
             
                 //SPOKE 001 Subnet Parameters
                 subnet_spoke_001_name : 'WEB-VMs-DEV-001'             
                 subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
-                subnet_spoke_001_address_space : '10.3.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_001_test_address_space : '10.3.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_001_address_space : '10.51.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_001_test_address_space : '10.51.1.0/24'           //Subnet address space for the test spoke
 
               //SPOKE 002 VNET Parameters
               vnet_spoke_002_name : 'VNET-SPOKE-DEV-002'   //Desired name of the vnet
-              vnet_spoke_002_address_space : '10.4.0.0/20'          //Address space for entire vnet
+              vnet_spoke_002_address_space : '10.52.0.0/20'          //Address space for entire vnet
             
                 //SPOKE 002 Subnet Parameters
                 subnet_spoke_002_name : 'WEB-VMs-DEV-002'             
                 subnet_spoke_002_test_name : 'TEST-VMs-DEV-002'
-                subnet_spoke_002_address_space : '10.4.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_002_test_address_space : '10.4.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_002_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_002_test_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
+
+              
+              //DMZ SPOKE VNET Parameters
+              vnet_spoke_DMZ_name : 'VNET-SPOKE-DEV-DMZ'   //Desired name of the vnet
+              vnet_spoke_DMZ_address_space : '10.52.0.0/20'          //Address space for entire vnet
+            
+                //SPOKE DMZ Subnet Parameters
+                subnet_spoke_DMZ_name : 'WEB-VMs-DEV-DMZ'             
+                subnet_spoke_DMZ_APP_GW_name : 'AppGatewaySubnet'
+                subnet_spoke_DMZ_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_DMZ_test_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
+
+
         }
         Sandbox: {
             envPrefix : 'SBX'
@@ -219,8 +232,12 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
   param peering_name_hub_to_spoke_001 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
   param peering_name_hub_to_spoke_002 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_002_name}'      // hub to spoke 002 peering name
+  param peering_name_hub_to_DMZ string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_DMZ_name}'      // hub to spoke DMZ peering name
+
+
   param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 001 to hub peering name
   param peering_name_spoke_002_to_hub string = '${env_table[env].vnet_spoke_002_name}/${env_table[env].vnet_spoke_002_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 002 to hub peering name
+  param peering_name_spoke_DMZ_to_hub string = '${env_table[env].vnet_spoke_DMZ_name}/${env_table[env].vnet_spoke_DMZ_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 002 to hub peering name
 
       // Hub to Spoke Params 
       param huballowForwardedTraffic bool = true
@@ -515,6 +532,10 @@ param nicName_002 string = '${vmName_002}-nic'
 //Managed Identity Params
 param userAssignedIdentityName string = 'UAMIUser'
 
+//Common Storage params
+param storageAccountName_01 string = 'dsc_test'
+param containerName_01 string = 'dsc_blob_container'
+
 
 //=========================================================================================//
 //=========================================================================================//
@@ -667,6 +688,28 @@ param userAssignedIdentityName string = 'UAMIUser'
       ]
     }
 
+
+        //VNET Spoke DMZ Module
+        module vnet_spoke_DMZ 'Modules/Network/VNet/VNet-Spoke-DMZ.bicep' = {
+          name: 'vnet-spoke_DMZ-module'
+          scope: resourceGroup(rg_01_name)
+          params: {
+            tags: tags
+            location: location
+            public_nsg_id: nsg.outputs.public_nsg_id
+            vnet_spoke_DMZ_name: env_table[env].vnet_spoke_DMZ_name
+            vnet_spoke_DMZ_address_space : env_table[env].vnet_spoke_DMZ_address_space
+            subnet_spoke_DMZ_name : env_table[env].subnet_spoke_DMZ_name
+            subnet_spoke_DMZ_address_space : env_table[env].subnet_spoke_DMZ_address_space
+            subnet_spoke_DMZ_APP_GW_name : env_table[env].subnet_spoke_DMZ_APP_GW_name
+            subnet_spoke_DMZ_APP_GW_address_space : env_table[env].subnet_spoke_DMZ_APP_GW_address_space
+          }
+          dependsOn: [
+            vnet_hub
+            //route_table
+          ]
+        }
+
     
 
   //===Peering Modules
@@ -708,6 +751,27 @@ param userAssignedIdentityName string = 'UAMIUser'
       }
       dependsOn: [
         vnet_spoke_002
+        //route_table
+      ] 
+    }
+
+
+    //Peering Module Spoke DMZ to Hub
+    module peering_spoke_DMZ_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
+      name: 'peering_module_spoke_DMZ_to_hub'
+      scope: resourceGroup(rg_01_name)     
+      params: {
+        peering_name_spoke_to_hub : peering_name_spoke_DMZ_to_hub     // spoke 001 to hub peering name
+        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
+        spokeallowForwardedTraffic : spokeallowForwardedTraffic
+        spokeallowGatewayTransit : spokeallowGatewayTransit
+        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
+        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
+        spokepeeringState : spokepeeringState
+        spokeuseRemoteGateways : spokeuseRemoteGateways
+      }
+      dependsOn: [
+        vnet_hub
         //route_table
       ] 
     }
@@ -755,6 +819,27 @@ param userAssignedIdentityName string = 'UAMIUser'
             vnet_spoke_002
           ] 
         }
+
+        // Peering Hub to Spoke DMZ
+        module peering_to_hub_DMZ 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
+          name: 'peering_module_hub_to_spoke_DMZ'
+          scope: resourceGroup(rg_01_name)
+          params: {
+            peering_name_hub_to_spoke : peering_name_hub_to_DMZ     // hub to spoke 001 peering name
+            vnet_spoke_id: vnet_spoke_DMZ.outputs.vnet_spoke_DMZ_id
+            huballowForwardedTraffic : huballowForwardedTraffic
+            huballowGatewayTransit : huballowGatewayTransit
+            huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
+            hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
+            hubpeeringState : hubpeeringState
+            hubuseRemoteGateways : hubuseRemoteGateways
+          }
+          dependsOn: [
+            vnet_hub
+            vnet_spoke_DMZ
+          ] 
+        }
+
 
   
   //Bastion Host Module
@@ -1072,6 +1157,37 @@ module vmPostDeploymentScript_03_SSMS 'Modules/Software/SQLServerMgtStudio.bicep
   }
   dependsOn: [
     vm_001
+  ]
+}
+
+/*
+module vmPostDeploymentScript_04_DSC 'Modules/Software/MgmtTools.bicep' = if (MgmtToolsDeploy) {
+  name: 'vm-post-deployment-script-module-dsc-mgmttools'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    vmName: vmName_001
+    stg: storageAccountName_01
+    location: location
+    containerName: containerName_01
+    tags: tags
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
+*/
+
+module storage 'Modules/Storage/storageblob.bicep' = if (storageCommonDeploy) {
+  name: 'storage-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    storageAccountName_01: storageAccountName_01
+    containerName_01: containerName_01
+    location: location
+    tags: tags
+  }
+  dependsOn: [
+    rg
   ]
 }
 

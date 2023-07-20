@@ -13,8 +13,8 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
-      param azureFirewallDeploy bool = false
-      param storageCommonDeploy bool = true
+      param azureFirewallDeploy bool = true
+      param storageCommonDeploy bool = false
 
       //Virtual Machine Options
       param deployBastion bool = false
@@ -201,13 +201,13 @@ targetScope = 'subscription'        // We will deploy these modules against our 
               
               //DMZ SPOKE VNET Parameters
               vnet_spoke_DMZ_name : 'VNET-SPOKE-DEV-DMZ'   //Desired name of the vnet
-              vnet_spoke_DMZ_address_space : '10.52.0.0/20'          //Address space for entire vnet
+              vnet_spoke_DMZ_address_space : '10.53.0.0/20'          //Address space for entire vnet
             
                 //SPOKE DMZ Subnet Parameters
                 subnet_spoke_DMZ_name : 'WEB-VMs-DEV-DMZ'             
                 subnet_spoke_DMZ_APP_GW_name : 'AppGatewaySubnet'
-                subnet_spoke_DMZ_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_DMZ_APP_GW_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_DMZ_address_space : '10.53.0.0/24'           //Subnet address space for the spoke
+                subnet_spoke_DMZ_APP_GW_address_space : '10.53.1.0/24'           //Subnet address space for the test spoke
 
 
         }
@@ -820,6 +820,8 @@ param containerName_01 string = 'dsc_blob_container'
           ] 
         }
 
+
+        
         // Peering Hub to Spoke DMZ
         module peering_to_hub_DMZ 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
           name: 'peering_module_hub_to_spoke_DMZ'
@@ -1204,7 +1206,7 @@ module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (dep
     vm_001
   ]
 }
-*/
+
 
 
 
@@ -1227,3 +1229,5 @@ module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLo
       law
     ]
 }
+
+*/

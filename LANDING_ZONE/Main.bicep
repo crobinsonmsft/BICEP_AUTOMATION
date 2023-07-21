@@ -14,10 +14,10 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
       param azureFirewallDeploy bool = true
-      param storageCommonDeploy bool = false
+      param storageCommonDeploy bool = true
 
       //Virtual Machine Options
-      param deployBastion bool = false
+      param deployBastion bool = true
       param deployVM1 bool = true
       param deployVM2 bool = false
 
@@ -25,7 +25,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
         param IISdeployEnabled bool = false
         param SSMSdeployEnabled bool = false
         param outputdeployEnabled bool = false
-        param MgmtToolsDeploy bool = false
+        param MgmtToolsDeploy bool = true
 
       //Backups and Recovery
       param recoveryServicesVault bool = false    
@@ -534,7 +534,7 @@ param userAssignedIdentityName string = 'UAMIUser'
 
 //Common Storage params
 param storageAccountName_01 string = 'dscstorage001'
-param containerName_01 string = 'dsc_blob_container'
+param containerName_01 string = 'dscblobcontainer'
 
 
 //=========================================================================================//
@@ -1123,6 +1123,21 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     ]
   }
 
+  module storage 'Modules/Storage/storageblob.bicep' = if (storageCommonDeploy) {
+    name: 'storage-module'
+    scope: resourceGroup(rg_02_name)
+    params: {
+      storageAccountName_01: storageAccountName_01
+      containerName_01: containerName_01
+      location: location
+      tags: tags
+    }
+    dependsOn: [
+      rg
+    ]
+  }
+  
+
 
 //VM Post deployment Customizations
 
@@ -1162,13 +1177,13 @@ module vmPostDeploymentScript_03_SSMS 'Modules/Software/SQLServerMgtStudio.bicep
   ]
 }
 
-/*
+
 module vmPostDeploymentScript_04_DSC 'Modules/Software/MgmtTools.bicep' = if (MgmtToolsDeploy) {
   name: 'vm-post-deployment-script-module-dsc-mgmttools'
   scope: resourceGroup(rg_03_name)
   params: {
+    storageAccountName: storageAccountName_01
     vmName: vmName_001
-    stg: storageAccountName_01
     location: location
     containerName: containerName_01
     tags: tags
@@ -1177,21 +1192,8 @@ module vmPostDeploymentScript_04_DSC 'Modules/Software/MgmtTools.bicep' = if (Mg
     vm_001
   ]
 }
-*/
 
-module storage 'Modules/Storage/storageblob.bicep' = if (storageCommonDeploy) {
-  name: 'storage-module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    storageAccountName_01: storageAccountName_01
-    containerName_01: containerName_01
-    location: location
-    tags: tags
-  }
-  dependsOn: [
-    rg
-  ]
-}
+
 
 /*
 module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (deployVM1) {

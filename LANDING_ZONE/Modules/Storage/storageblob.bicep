@@ -5,12 +5,13 @@ param tags object
 
 resource sa 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName_01
+  kind: 'StorageV2'
   location: location
   tags: tags
   sku: {
     name: 'Standard_LRS'
   }
-  kind: 'StorageV2'
+  
   properties: {
     accessTier: 'Hot'
   }

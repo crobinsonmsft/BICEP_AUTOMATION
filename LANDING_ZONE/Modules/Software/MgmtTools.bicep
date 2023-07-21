@@ -1,18 +1,26 @@
 
-param stg string
+param storageAccountName string
 param tags object
 param location string
 param vmName string
 param containerName string
 
-var _artifactsLocationSasToken = stg.listServiceSAS('2021-04-01', {
-  canonicalizedResource: '/blob/${stg.name}/${containerName}'
-  signedResource: 'c'
+resource stg 'Microsoft.Storage/storageAccounts@2022-09-01' existing = {
+  name: storageAccountName
+}
+
+/*
+var allBlobDownloadSAS = listAccountSAS(storageAccountName, '2022-09-01', {
   signedProtocol: 'https'
-  signedPermission: 'r'
+  signedResourceTypes: 'sco'
+  signedPermission: 'rl'
   signedServices: 'b'
-  signedExpiry: dateTimeAdd(baseTime, 'PT1H')
-}).serviceSasToken 
+  signedExpiry: '2024-01-01T00:00:00Z'
+}).accountSasToken
+
+output sasToken string = allBlobDownloadSAS 
+var DSCSAS = storageAccountName.outputs.sasToken
+*/
 
 
 resource dscExtension 'Microsoft.Compute/virtualMachines/extensions@2018-10-01' = {
@@ -28,14 +36,12 @@ resource dscExtension 'Microsoft.Compute/virtualMachines/extensions@2018-10-01' 
     settings: {
       wmfVersion: 'latest'
       configuration: {
-        url: '${stg.properties.primaryEndpoints.blob}${containerName}/MgmtTools.ps1.zip' 
-        script: 'common.ps1' 
-        function: 'Common' 
+        //url: '${stg.properties.primaryEndpoints.blob}${containerName}/MgmtTools.ps1.zip' 
+        url: 'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/MgmtTools.ps1.zip'
+        script: 'MgmtTools.ps1' 
+        function: 'WebServerConfiguration' 
       }
       configurationArguments: {}
-    }
-    protectedSettings: {
-      configurationUrlSasToken: '?${_artifactsLocationSasToken}' 
     }
   }
 }

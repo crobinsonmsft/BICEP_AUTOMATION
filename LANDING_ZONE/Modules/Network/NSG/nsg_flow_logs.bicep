@@ -8,7 +8,7 @@ param storageAccountNameNsg string
 param flowLogsVersion int
 param nsgStorageAccountType string
 param bastion_nsg_id string
-param public_nsg_id string
+//param public_nsg_id string
 param private_nsg_id string
 param tags object
 
@@ -57,6 +57,9 @@ resource flowLogPrivate 'Microsoft.Network/networkWatchers/flowLogs@2022-01-01' 
   }
 }
 
+
+// PUBLIC NOT SUPPORTED AS THIS IS THE APP GATEWAY'S NSG
+/*
 resource flowLogPublic 'Microsoft.Network/networkWatchers/flowLogs@2022-01-01' = {
   name: 'public_flowLog'
   tags: tags
@@ -76,7 +79,7 @@ resource flowLogPublic 'Microsoft.Network/networkWatchers/flowLogs@2022-01-01' =
     }
   }
 }
-
+*/
 
 resource flowLogBastion 'Microsoft.Network/networkWatchers/flowLogs@2022-01-01' = {
   name: 'bastion_flowLog'

@@ -3,7 +3,7 @@
 //=================Params=================//
 param tags object
 param location string
-param route_table_name string
+param route_table_name string = 'AllTraffic-Spoke-001'
 param bgp_disable bool 
 param bgp_override bool
 param nextHopType string
@@ -17,7 +17,7 @@ param vnet_address_space_underscore string
 
 //====== Start Route Table Creation ======//
 
-resource routeTable 'Microsoft.Network/routeTables@2021-05-01' = {
+resource routeTable 'Microsoft.Network/routeTables@2022-11-01' = {
   name: route_table_name
   location: location
   tags: tags
@@ -30,12 +30,12 @@ resource routeTable 'Microsoft.Network/routeTables@2021-05-01' = {
         properties: {
           addressPrefix: peering_prefix_hub
           nextHopType: nextHopType
-          nextHopIpAddress: '10.204.3.4'    //This is the Firewall Address
+          nextHopIpAddress: '10.204.3.4'    //This is the Firewall's Private (inside) adapter Address
           hasBgpOverride: bgp_override
         }
       }
       {
-        name: '${subscriptionPrefix}rte-vnt-0.0.0.0_0'
+        name: '${subscriptionPrefix}rte-vnt-0.0.0.0_0-ALLTRAFFIC'
         properties: {
           addressPrefix: '0.0.0.0/0'
           nextHopType: nextHopType

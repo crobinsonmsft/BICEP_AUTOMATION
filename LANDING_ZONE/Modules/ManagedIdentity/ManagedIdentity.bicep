@@ -9,3 +9,5 @@ resource uami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   location: location
   tags: tags
 }
+
+output uami_id string = uami.id

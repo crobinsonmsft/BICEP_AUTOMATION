@@ -135,15 +135,6 @@ output vm_001_id string = vm_001.id
 
 
 
-// create user assigned managed identity
-resource uami 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: userAssignedIdentityName
-  location: location
-  tags: tags
-}
-
-output uami_id string = uami.id
-
 /*
 // create role assignment
 //var AMA_USER_ROLE_GUID = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')

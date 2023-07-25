@@ -13,19 +13,20 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
-      param azureFirewallDeploy bool = true
-      param storageCommonDeploy bool = true
+      param azureFirewallDeploy bool = false
+      param storageCommonDeploy bool = true         //Can be used for File Storage etc.
+      param appGatewayDeploy bool = true
 
       //Virtual Machine Options
       param deployBastion bool = true
       param deployVM1 bool = true
       param deployVM2 bool = false
 
-        //Post Deployment Software Installs
-        param IISdeployEnabled bool = false
+        //Post Virtual Machine Deployment Software Installs
+        param IISdeployEnabled bool = true
         param SSMSdeployEnabled bool = false
         param outputdeployEnabled bool = false
-        param MgmtToolsDeploy bool = true
+        param MgmtToolsDeploy bool = false
 
       //Backups and Recovery
       param recoveryServicesVault bool = false    
@@ -34,7 +35,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
       //Logging and Monitoring
       param actionGroupEnabled bool = false
       param logAnalyticsWorkspaceEnabled bool = true    // Must be true if VM provisioning is true
-      param vmLogAnalyticsSolutionsEnabled bool = true
+      param vmLogAnalyticsSolutionsEnabled bool = false
       param vmMonitorCPUenabled bool = false  // Cannot be True if Log Analytics Solutions is false
       param vmMonitorDiskEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
       param vmMonitorMemoryEnabled bool = false   // Cannot be True if Log Analytics Solutions is false
@@ -131,6 +132,12 @@ targetScope = 'subscription'        // We will deploy these modules against our 
   param firewallName string = 'FIREWALL-${env_table[env].envPrefix}-001'
   param firewallPolicyName string = 'FIREWALL-POLICY-${env_table[env].envPrefix}-001'
   param azurepublicIpname string = 'PUB-IP-AZUREFIREWALL-00'
+
+  //App Gateway
+  
+  param publicIPAddressAppGatewayName string = 'PUB-IP-APPGATEWAY-00'
+  param applicationGateWayName string = 'APPGATEWAY-${env_table[env].envPrefix}-001'
+  param wafPolicyName string = 'WAF-POLICY-${env_table[env].envPrefix}-001'
 
 
   //=====VNETS=====//
@@ -606,7 +613,7 @@ param containerName_01 string = 'dscblobcontainer'
         nsgStorageAccountType: nsgStorageAccountType
         storageAccountNameNsg: storageAccountNameNsg
         bastion_nsg_id: nsg.outputs.bastion_nsg_id
-        public_nsg_id: nsg.outputs.public_nsg_id
+        //public_nsg_id: nsg.outputs.public_nsg_id    https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-faq Flow logs not supported on App Gateway Subnet
         private_nsg_id: nsg.outputs.private_nsg_id
         tags: tags
       }
@@ -625,7 +632,6 @@ param containerName_01 string = 'dscblobcontainer'
       tags: tags
       location: location
       bastion_nsg_id: nsg.outputs.bastion_nsg_id
-      public_nsg_id: nsg.outputs.public_nsg_id
       private_nsg_id: nsg.outputs.private_nsg_id
       vnet_hub_name: env_table[env].vnet_hub_name
       vnet_hub_address_space : env_table[env].vnet_hub_address_space
@@ -700,7 +706,6 @@ param containerName_01 string = 'dscblobcontainer'
             vnet_spoke_DMZ_name: env_table[env].vnet_spoke_DMZ_name
             vnet_spoke_DMZ_address_space : env_table[env].vnet_spoke_DMZ_address_space
             subnet_spoke_DMZ_name : env_table[env].subnet_spoke_DMZ_name
-            subnet_spoke_DMZ_address_space : env_table[env].subnet_spoke_DMZ_address_space
             subnet_spoke_DMZ_APP_GW_name : env_table[env].subnet_spoke_DMZ_APP_GW_name
             subnet_spoke_DMZ_APP_GW_address_space : env_table[env].subnet_spoke_DMZ_APP_GW_address_space
           }
@@ -772,7 +777,7 @@ param containerName_01 string = 'dscblobcontainer'
       }
       dependsOn: [
         vnet_hub
-        //route_table
+        vnet_spoke_DMZ
       ] 
     }
 
@@ -881,6 +886,26 @@ module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewa
       vnet_spoke_001
     ]
 } 
+
+//App Gateway Module
+module appGateway 'Modules/Network/App_Gateway/App_Gateway.bicep' = if (appGatewayDeploy) {
+  name: 'app-gateway-module'
+  scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: location
+      virtualNetworkName: env_table[env].vnet_spoke_DMZ_name
+      publicIPAddressAppGatewayName: publicIPAddressAppGatewayName
+      applicationGateWayName: applicationGateWayName
+      subnet_spoke_DMZ_APP_GW_name: env_table[env].subnet_spoke_DMZ_APP_GW_name
+      wafPolicyName: wafPolicyName
+    }
+    dependsOn: [
+      vnet_spoke_DMZ
+    ]
+} 
+
+
 
 
 
@@ -1123,6 +1148,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
     ]
   }
 
+  //Storage Account for Common Use in the Landing Zone
   module storage 'Modules/Storage/storageblob.bicep' = if (storageCommonDeploy) {
     name: 'storage-module'
     scope: resourceGroup(rg_02_name)
@@ -1138,9 +1164,30 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
   }
   
 
-
+//==============================================//
+//==============================================//
 //VM Post deployment Customizations
+//==============================================//
+//==============================================//
 
+
+
+module vmPostDeploymentScript_05_DSC_IIS 'Modules/Software/IIS_DSC.bicep' = if (IISdeployEnabled) {
+  name: 'vm-post-deployment-script-module-dsc-iis'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    storageAccountName: storageAccountName_01
+    vmName: vmName_001
+    location: location
+    containerName: containerName_01
+    tags: tags
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
+
+/*
 module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeployEnabled) {
   name: 'vm-post-deployment-script-module-IIS'
   scope: resourceGroup(rg_03_name)
@@ -1152,6 +1199,7 @@ module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeplo
     vm_001
   ]
 }
+*/
 
 module vmPostDeploymentScript_02_output 'Modules/Software/output.bicep' = if (outputdeployEnabled) {
   name: 'vm-post-deployment-script-module-output'
@@ -1195,7 +1243,7 @@ module vmPostDeploymentScript_04_DSC 'Modules/Software/MgmtTools.bicep' = if (Mg
 
 
 
-/*
+//User Assigned Managed Identity for Install of AMA agent
 module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (deployVM1) {
   name: 'userAssignedIdentity-module'
   scope: resourceGroup(rg_03_name)
@@ -1209,9 +1257,17 @@ module managedIdentity 'Modules/ManagedIdentity/ManagedIdentity.bicep' = if (dep
   ]
 }
 
-
-
-
+module amaAgent 'Modules/Software/SQLServerMgtStudio.bicep' = if (SSMSdeployEnabled) {
+  name: 'vm-post-deployment-script-module-ssms'
+  scope: resourceGroup(rg_03_name)
+  params: {
+    vmName: vmName_001
+    location: location
+  }
+  dependsOn: [
+    vm_001
+  ]
+}
 
 //Log Analytics Solutions Module
 module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
@@ -1231,5 +1287,3 @@ module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLo
       law
     ]
 }
-
-*/

@@ -11,7 +11,6 @@ param location string
 //nsg params
 
 param bastion_nsg_id string
-param public_nsg_id string
 param private_nsg_id string
 
 
@@ -37,7 +36,7 @@ param subnet_hub_ss_address_space string
 
 //======== Start Resource Creation =======//
 
-resource vnet_hub 'Microsoft.Network/virtualNetworks@2020-11-01' = {
+resource vnet_hub 'Microsoft.Network/virtualNetworks@2022-11-01' = {
   name: vnet_hub_name
   location: location
   tags: tags

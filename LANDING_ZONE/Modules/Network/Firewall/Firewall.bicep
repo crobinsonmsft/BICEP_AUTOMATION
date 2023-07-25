@@ -208,3 +208,5 @@ resource firewall 'Microsoft.Network/azureFirewalls@2022-11-01' = {
     }
   }
 }
+
+output firewallPrivIP string = firewall.properties.hubIPAddresses.privateIPAddress

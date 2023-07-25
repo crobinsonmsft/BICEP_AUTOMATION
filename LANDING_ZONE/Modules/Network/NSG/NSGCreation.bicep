@@ -179,14 +179,14 @@ resource networkSecurityGroups_bastion_nsg_name_resource 'Microsoft.Network/netw
 }
 
 
-//Public
+//Public  -  Added to DMZ subnet hosting App Gateway
 resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/networkSecurityGroups@2020-11-01' = {
   name: networkSecurityGroups_public_nsg_name
   location: location
   tags: tags 
   properties: {
     securityRules: [
-/*
+
       {
         name: 'AllowHttpsInbound'
         properties: {
@@ -194,6 +194,25 @@ resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/netwo
           protocol: 'Tcp'
           sourcePortRange: '*'
           destinationPortRange: '443'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 100
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+
+      {
+        name: 'AllowHttpInbound'
+        properties: {
+          description: 'Allow inbound access from the Internet on port 80'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
           sourceAddressPrefix: 'Internet'
           destinationAddressPrefix: '*'
           access: 'Allow'
@@ -205,14 +224,15 @@ resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/netwo
           destinationAddressPrefixes: []
         }
       }
-*/
+
+
       {
         name: 'AllowGatewayManagerInbound'
         properties: {
           description: 'Allow inbound access from Azure GatewayManager on port 443 for control plane connectivity'
-          protocol: 'Tcp'
+          protocol: '*'
           sourcePortRange: '*'
-          destinationPortRange: '443'
+          destinationPortRange: '65200-65535'
           sourceAddressPrefix: 'GatewayManager'
           destinationAddressPrefix: '*'
           access: 'Allow'
@@ -224,7 +244,7 @@ resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/netwo
           destinationAddressPrefixes: []
         }
       }
-      {
+      /*{
         name: 'AllowSshRdpOutbound'
         properties: {
           description: 'Allow egress traffic to target VMs over private IP'
@@ -243,8 +263,8 @@ resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/netwo
           sourceAddressPrefixes: []
           destinationAddressPrefixes: []
         }
-      }
-      {
+      }*/
+      /*{
         name: 'AllowAzureCloudOutbound'
         properties: {
           description: 'Allow egress traffic to public endpoints within Azure'
@@ -261,7 +281,7 @@ resource networkSecurityGroups_public_nsg_name_resource 'Microsoft.Network/netwo
           sourceAddressPrefixes: []
           destinationAddressPrefixes: []
         }
-      }
+      }*/
     ]
   }
 }

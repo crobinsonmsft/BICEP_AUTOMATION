@@ -37,7 +37,7 @@ resource dscExtension 'Microsoft.Compute/virtualMachines/extensions@2023-03-01' 
       wmfVersion: 'latest'
       configuration: {
         //url: '${stg.properties.primaryEndpoints.blob}${containerName}/MgmtTools.ps1.zip' 
-        url: 'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/IIS_DSC.ps1'
+        url: 'https://raw.githubusercontent.com/crobinsonmsft/BICEP_AUTOMATION/main/LANDING_ZONE/Scripts/IIS_DSC.ps1.zip'
         script: 'IIS_DSC.ps1' 
         function: 'WebsiteTest' 
       }

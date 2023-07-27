@@ -79,6 +79,7 @@ resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for
 resource firewallPolicy 'Microsoft.Network/firewallPolicies@2022-01-01'= {
   name: firewallPolicyName
   location: location
+  tags: tags
   properties: {
     threatIntelMode: 'Alert'
   }
@@ -209,4 +210,4 @@ resource firewall 'Microsoft.Network/azureFirewalls@2022-11-01' = {
   }
 }
 
-output firewallPrivIP string = firewall.properties.hubIPAddresses.privateIPAddress
+output firewallPrivIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress

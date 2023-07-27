@@ -3,7 +3,7 @@
 Configuration WebsiteTest {
 
     # Import the module that contains the resources we're using.
-    Import-DscResource -ModuleName PsDesiredStateConfiguration
+    #Import-DscResource -ModuleName PsDesiredStateConfiguration
 
     # The Node statement specifies which targets this configuration will be applied to.
     Node 'localhost' {
@@ -15,11 +15,11 @@ Configuration WebsiteTest {
         }
 
         # The second resource block ensures that the website content copied to the website root folder.
-        File WebsiteContent {
-            Ensure = 'Present'
-            SourcePath = 'c:\test\index.htm'
-            DestinationPath = 'c:\inetpub\wwwroot'
-        }
+        #File WebsiteContent {
+         #   Ensure = 'Present'
+          #  SourcePath = 'c:\test\index.htm'
+           # DestinationPath = 'c:\inetpub\wwwroot'
+        #}
     }
 }
 

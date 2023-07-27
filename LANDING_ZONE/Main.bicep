@@ -13,8 +13,8 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
-      param azureFirewallDeploy bool = false
-      param storageCommonDeploy bool = true         //Can be used for File Storage etc.
+      param azureFirewallDeploy bool = true
+      param storageCommonDeploy bool = true         //Can be used for File Storage etc.  We store DSC scripts here in our example
       param appGatewayDeploy bool = true
 
       //Virtual Machine Options
@@ -23,10 +23,10 @@ targetScope = 'subscription'        // We will deploy these modules against our 
       param deployVM2 bool = false
 
         //Post Virtual Machine Deployment Software Installs
-        param IISdeployEnabled bool = true
+        param IISdeployEnabled bool = false
         param SSMSdeployEnabled bool = false
         param outputdeployEnabled bool = false
-        param MgmtToolsDeploy bool = false
+        param MgmtToolsDeploy bool = true
 
       //Backups and Recovery
       param recoveryServicesVault bool = false    

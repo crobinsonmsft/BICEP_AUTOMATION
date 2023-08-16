@@ -6,7 +6,14 @@ A variety of different bicep scripts to assist with automating Azure
 ## Execution
 
 You can target your deployment to a resource group, subscription, management group, or tenant level. Depending on the scope of the deployment, you use different commands.
-### First, set your subscription:
+
+### First, Login to Azure:
+   
+```
+az login
+```
+
+### Next, set your subscription:
    
 ```
 az account set --subscription <subscription name or id>

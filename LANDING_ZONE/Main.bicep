@@ -13,20 +13,21 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
 //What will we deploy?  Select to true or false for each
       param deployNSGflowLogs bool = false
-      param azureFirewallDeploy bool = true
-      param storageCommonDeploy bool = true         //Can be used for File Storage etc.  We store DSC scripts here in our example
-      param appGatewayDeploy bool = true
+      param azureFirewallDeploy bool = false
+      param storageCommonDeploy bool = false         //Can be used for File Storage etc.  We store DSC scripts here in our example
+      param appGatewayDeploy bool = false
+      param privateDnsDeploy bool = false
 
       //Virtual Machine Options
-      param deployBastion bool = true
-      param deployVM1 bool = true
+      param deployBastion bool = false
+      param deployVM1 bool = false
       param deployVM2 bool = false
 
         //Post Virtual Machine Deployment Software Installs
         param IISdeployEnabled bool = false
         param SSMSdeployEnabled bool = false
         param outputdeployEnabled bool = false
-        param MgmtToolsDeploy bool = true
+        param MgmtToolsDeploy bool = false
 
       //Backups and Recovery
       param recoveryServicesVault bool = false    
@@ -272,6 +273,13 @@ param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP
 
 //Bastion Host Parameters
 var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
+
+//Private DNS Zone Parameters
+@description('private dns zone name')
+param dnsZoneName string = 'widgetsabc.com'  //name dot format
+
+@description('enable auto registration for private dns')
+param autoRegistration bool = true
 
 
 //============================================================//
@@ -540,8 +548,8 @@ param nicName_002 string = '${vmName_002}-nic'
 param userAssignedIdentityName string = 'UAMIUser'
 
 //Common Storage params
-param storageAccountName_01 string = 'dscstorage001'
-param containerName_01 string = 'dscblobcontainer'
+param storageAccountName_01 string = 'storage-${uniqueString(subscription().id)}'
+param containerName_01 string = 'general-blobcontainer'
 
 
 //=========================================================================================//
@@ -906,7 +914,21 @@ module appGateway 'Modules/Network/App_Gateway/App_Gateway.bicep' = if (appGatew
 } 
 
 
-
+//Private DNS Zone Module
+module privateDNS 'Modules/Network/DNS/Private_DNS.bicep' = if (privateDnsDeploy) {
+  name: 'dns-zone-module'
+  scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: 'global'  // Do not change from Global
+      dnsZoneName: dnsZoneName
+      autoRegistration: autoRegistration
+      vnetId: vnet_hub.outputs.vnet_hub_id
+    }
+    dependsOn: [
+      vnet_spoke_DMZ
+    ]
+} 
 
 
 //===========================================//
@@ -989,6 +1011,25 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = if (logAnalyticsWorkspac
   }
   dependsOn: [
       rg
+    ]
+}
+
+//Log Analytics Solutions Module
+module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
+  name: 'vm-insights-module'
+  scope: resourceGroup(rg_02_name)
+  params: {
+    tags: tags
+    location: location
+    location_2: location_2
+    workspaceName: workspaceName
+    vmInsights : vmInsights_
+    vmUpdates: vmUpdates_
+    workspace_id : law.outputs.workspace_id
+    automationAccountName: automationAccountName
+  }
+  dependsOn: [
+      law
     ]
 }
 
@@ -1087,7 +1128,6 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 }
 */
 
-
 //==============================================//
 //====End of Monitoring and Alerting Modules====//
 //==============================================//
@@ -1118,7 +1158,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      nsg
+      law
     ]
   }
 
@@ -1144,7 +1184,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       userAssignedIdentityName: userAssignedIdentityName
     }
     dependsOn: [
-      nsg
+      law
     ]
   }
 
@@ -1171,7 +1211,7 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
 //==============================================//
 
 
-
+/*
 module vmPostDeploymentScript_05_DSC_IIS 'Modules/Software/IIS_DSC.bicep' = if (IISdeployEnabled) {
   name: 'vm-post-deployment-script-module-dsc-iis'
   scope: resourceGroup(rg_03_name)
@@ -1187,7 +1227,7 @@ module vmPostDeploymentScript_05_DSC_IIS 'Modules/Software/IIS_DSC.bicep' = if (
   ]
 }
 
-/*
+
 module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeployEnabled) {
   name: 'vm-post-deployment-script-module-IIS'
   scope: resourceGroup(rg_03_name)
@@ -1199,7 +1239,7 @@ module vmPostDeploymentScript_01_IIS 'Modules/Software/IIS.bicep' = if (IISdeplo
     vm_001
   ]
 }
-*/
+
 
 module vmPostDeploymentScript_02_output 'Modules/Software/output.bicep' = if (outputdeployEnabled) {
   name: 'vm-post-deployment-script-module-output'
@@ -1268,22 +1308,7 @@ module amaAgent 'Modules/Software/SQLServerMgtStudio.bicep' = if (SSMSdeployEnab
     vm_001
   ]
 }
+*/
 
-//Log Analytics Solutions Module
-module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
-  name: 'vm-insights-module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    tags: tags
-    location: location
-    location_2: location_2
-    workspaceName: workspaceName
-    vmInsights : vmInsights_
-    vmUpdates: vmUpdates_
-    workspace_id : law.outputs.workspace_id
-    automationAccountName: automationAccountName
-  }
-  dependsOn: [
-      law
-    ]
-}
+
+

@@ -7,8 +7,8 @@ param tags object
 param location string
 param firewallName string
 param firewallPolicyName string
-param azurepublicIpname string
-param fw_vnet string
+//param azurepublicIpname string
+param virtualHubId string 
 
 
 @description('Number of public IP addresses for the Azure Firewall')
@@ -23,19 +23,6 @@ param availabilityZones array = []
 param infraIpGroupName string = '${location}-infra-ipgroup-${uniqueString(resourceGroup().id)}'
 param workloadIpGroupName string = '${location}-workload-ipgroup-${uniqueString(resourceGroup().id)}'
 
-
-
-var azureFirewallSubnetId = resourceId('Microsoft.Network/virtualNetworks/subnets', fw_vnet, 'AzureFirewallSubnet')
-var azureFirewallPublicIpId = resourceId('Microsoft.Network/publicIPAddresses', azurepublicIpname)
-var azureFirewallIpConfigurations = [for i in range(0, numberOfPublicIPAddresses): {
-  name: 'IpConf${i}'
-  properties: {
-    subnet: ((i == 0) ? json('{"id": "${azureFirewallSubnetId}"}') : json('null'))
-    publicIPAddress: {
-      id: '${azureFirewallPublicIpId}${i + 1}'
-    }
-  }
-}]
 
 //===============End Params===============//
 
@@ -63,7 +50,7 @@ resource infraIpGroup 'Microsoft.Network/ipGroups@2022-01-01' = {
 }
 */
 
-
+/*
 resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for i in range(0, numberOfPublicIPAddresses): {
   name: '${azurepublicIpname}${i + 1}'
   location: location
@@ -75,6 +62,7 @@ resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for
     publicIPAddressVersion: 'IPv4'
   }
 }]
+*/
 
 resource firewallPolicy 'Microsoft.Network/firewallPolicies@2022-01-01'= {
   name: firewallPolicyName
@@ -209,12 +197,19 @@ resource firewall 'Microsoft.Network/azureFirewalls@2023-04-01' = {
       name: 'AZFW_Hub'
       tier: 'Premium'
     }
-    ipConfigurations: azureFirewallIpConfigurations
+    hubIPAddresses: {
+      publicIPs: {
+        count: 1
+      }
+    }
     //threatIntelMode: 'Alert'
     firewallPolicy: {
       id: firewallPolicy.id
     }
+    virtualHub: {
+      id: virtualHubId
+    }
   }
 }
 
-output firewallPrivIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress
+//output firewallPrivIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress

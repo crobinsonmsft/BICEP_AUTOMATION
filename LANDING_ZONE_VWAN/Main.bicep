@@ -54,6 +54,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
     ])
     @description('Defines the environment classification our deployment will be based on')
     param env string = 'Development'  // Set this value
+
     param DeploymentDate string = utcNow('yyyy-MMM-dd')  //Let's grab the date and time for our resource deployments
 
   
@@ -132,7 +133,7 @@ targetScope = 'subscription'        // We will deploy these modules against our 
 
   param firewallName string = 'FIREWALL-${env_table[env].envPrefix}-001'
   param firewallPolicyName string = 'FIREWALL-POLICY-${env_table[env].envPrefix}-001'
-  param azurepublicIpname string = 'PUB-IP-AZUREFIREWALL-00'
+  //param azurepublicIpname string = 'PUB-IP-AZUREFIREWALL-00'
 
   //App Gateway
   
@@ -167,55 +168,34 @@ targetScope = 'subscription'        // We will deploy these modules against our 
             envPrefix : 'DEV'
             //subscription: '/subscriptions/be5b442a-b163-4072-ac83-2cb81ef9654a'   //Visual Studio Enterprise Subscription
             subscription : subscription().subscriptionId //Current Subscription
-
+         
+              //SPOKE DMZ VNET Parameters
+              vnet_spoke_DMZ_name : 'VNET-SPOKE-DEV-DMZ'   //Desired name of the vnet
+              vnet_spoke_DMZ_address_space : '10.51.0.0/20'          //Address space for entire vnet
             
-              //HUB VNET Parameters
-              vnet_hub_name : 'VNET-HUB-DEV'   //Desired name of the vnet
-              vnet_hub_address_space : '10.50.0.0/20'          //Address space for entire vnet
+                //DMZ SPOKE Subnet Parameters
+                subnet_spoke_DMZ_name : 'AppGatewaySubnet'             
+                subnet_spoke_DMZ_address_space : '10.51.0.0/24'           //Subnet address space for the spoke
+                
 
-                //HUB Subnet Parameters
-                  //Names
-                    subnet_hub_gw_name : 'GatewaySubnet'         //Name for Gateway Subnet - this must ALWAYS be GatewaySubnet
-                    subnet_hub_fw_name : 'AzureFirewallSubnet'   //Name for Azure Firewall Subnet - this must ALWAYS be AzureFirewallSubnet
-                    subnet_hub_bas_name : 'AzureBastionSubnet'   //Name for Azure Bastion Subnet - this must ALWAYS be AzureBastionSubnet
-                    subnet_hub_ss_name : 'SharedServicesSubnet'  //Name for Shared Services Subnet - Would host AD, DNS, etc.
-
-                  //Addresses
-                    subnet_hub_gw_adress_space : '10.50.0.0/24'   //Subnet address space for Gateway Subnet
-                    subnet_hub_fw_address_space : '10.50.1.0/24'  //Subnet address space for Azure Firewall Subnet
-                    subnet_hub_bas_address_space : '10.50.2.0/24' //Subnet address space for Bastion Subnet
-                    subnet_hub_ss_address_space : '10.50.3.0/24'  //Subnet address space for Shared Services Subnet
-          
-              //SPOKE 001 VNET Parameters
-              vnet_spoke_001_name : 'VNET-SPOKE-DEV-001'   //Desired name of the vnet
-              vnet_spoke_001_address_space : '10.51.0.0/20'          //Address space for entire vnet
-            
-                //SPOKE 001 Subnet Parameters
-                subnet_spoke_001_name : 'WEB-VMs-DEV-001'             
-                subnet_spoke_001_test_name : 'TEST-VMs-DEV-001'
-                subnet_spoke_001_address_space : '10.51.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_001_test_address_space : '10.51.1.0/24'           //Subnet address space for the test spoke
-
-              //SPOKE 002 VNET Parameters
-              vnet_spoke_002_name : 'VNET-SPOKE-DEV-002'   //Desired name of the vnet
-              vnet_spoke_002_address_space : '10.52.0.0/20'          //Address space for entire vnet
+              //SPOKE SHARED SERVICES VNET Parameters
+              vnet_spoke_ss_name : 'VNET-SPOKE-DEV-SS'   //Desired name of the vnet
+              vnet_spoke_ss_address_space : '10.52.0.0/20'          //Address space for entire vnet
             
                 //SPOKE 002 Subnet Parameters
-                subnet_spoke_002_name : 'WEB-VMs-DEV-002'             
-                subnet_spoke_002_test_name : 'TEST-VMs-DEV-002'
-                subnet_spoke_002_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_002_test_address_space : '10.52.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_ss_name : 'SharedServices01'             
+                subnet_spoke_ss_address_space : '10.52.0.0/24'           //Subnet address space for the spoke
+                
 
               
-              //DMZ SPOKE VNET Parameters
-              vnet_spoke_DMZ_name : 'VNET-SPOKE-DEV-DMZ'   //Desired name of the vnet
-              vnet_spoke_DMZ_address_space : '10.53.0.0/20'          //Address space for entire vnet
+              //WEB SPOKE VNET Parameters
+              vnet_spoke_WEB_name : 'VNET-SPOKE-DEV-WEB'   //Desired name of the vnet
+              vnet_spoke_WEB_address_space : '10.53.0.0/20'          //Address space for entire vnet
             
                 //SPOKE DMZ Subnet Parameters
-                subnet_spoke_DMZ_name : 'WEB-VMs-DEV-DMZ'             
-                subnet_spoke_DMZ_APP_GW_name : 'AppGatewaySubnet'
-                subnet_spoke_DMZ_address_space : '10.53.0.0/24'           //Subnet address space for the spoke
-                subnet_spoke_DMZ_APP_GW_address_space : '10.53.1.0/24'           //Subnet address space for the test spoke
+                subnet_spoke_WEB_name : 'WEB-VMs-DEV'      
+                subnet_spoke_WEB_address_space : '10.53.0.0/24'           //Subnet address space for the spoke
+                
 
 
         }
@@ -236,33 +216,14 @@ targetScope = 'subscription'        // We will deploy these modules against our 
         }
       }
 
-//=======Peering Parameters========//
+//======= VWAN Parameters========//
 
-  param peering_name_hub_to_spoke_001 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_001_name}'      // hub to spoke 001 peering name
-  param peering_name_hub_to_spoke_002 string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_002_name}'      // hub to spoke 002 peering name
-  param peering_name_hub_to_DMZ string = '${env_table[env].vnet_hub_name}/${env_table[env].vnet_hub_name}-peering-to-${env_table[env].vnet_spoke_DMZ_name}'      // hub to spoke DMZ peering name
-
-
-  param peering_name_spoke_001_to_hub string = '${env_table[env].vnet_spoke_001_name}/${env_table[env].vnet_spoke_001_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 001 to hub peering name
-  param peering_name_spoke_002_to_hub string = '${env_table[env].vnet_spoke_002_name}/${env_table[env].vnet_spoke_002_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 002 to hub peering name
-  param peering_name_spoke_DMZ_to_hub string = '${env_table[env].vnet_spoke_DMZ_name}/${env_table[env].vnet_spoke_DMZ_name}-peering-to-${env_table[env].vnet_hub_name}'      // spoke 002 to hub peering name
-
-      // Hub to Spoke Params 
-      param huballowForwardedTraffic bool = true
-      param huballowGatewayTransit bool = true
-      param huballowVirtualNetworkAccess bool = true
-      param hubdoNotVerifyRemoteGateways bool = false
-      param hubpeeringState string = 'Connected'
-      param hubuseRemoteGateways bool = false    
+param vwanHubAddressPrefix string = '10.19.0.0/24'
+param virtualWanName string = 'VWAN-${env_table[env].envPrefix}'
+param virtualHubName string = 'HUB-${env_table[env].envPrefix}'
 
 
-      // Spoke to Hub Params
-      param spokeallowForwardedTraffic bool = true
-      param spokeallowGatewayTransit bool = false
-      param spokeallowVirtualNetworkAccess bool = true
-      //param spokedoNotVerifyRemoteGateways bool = true
-      param spokepeeringState string = 'Connected'
-      param spokeuseRemoteGateways bool = false   // Should be true unless you have no gateway in the hub
+//======= BASTION Parameters========//
 
 //Public IP Address Parameters for Bastion
 var publicIPAddressName = 'PUB-IP-${env_table[env].envPrefix}-BASTION'
@@ -284,8 +245,6 @@ param autoRegistration bool = true
 
 //============================================================//
 //===================Begin Monitoring Parameters================//
-
-
 
   //==Action Group Parameters==//
   @description('Enter Emails or Distribution lists in SMTP format to direct Email alerts to.')
@@ -590,6 +549,25 @@ param containerName_01 string = 'general-blobcontainer'
 //=======Start of Network Modules=======//
 //===========================================//
 
+
+ //VWAN Module    // Creates all NSGs throughout deployment
+ module vwan 'Modules/Network/VWAN/vwan.bicep' = {
+  name: 'vwan-module'
+  scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: location
+      virtualWanName : virtualWanName
+      virtualHubName : virtualHubName
+      vwanHubAddressPrefix: vwanHubAddressPrefix
+    }
+    dependsOn: [
+      rg
+    ]
+  }
+
+
+
   //NSG Module    // Creates all NSGs throughout deployment
   module nsg 'Modules/Network/NSG/NSGCreation.bicep' = {
   name: 'nsg-module'
@@ -607,7 +585,7 @@ param containerName_01 string = 'general-blobcontainer'
   }
 
 
-   
+   /*
   //NSG Flow Logs
     module nsgFlow 'Modules/Network/NSG/nsg_flow_logs.bicep' = if (deployNSGflowLogs) {
       name: 'nsgFlow-module'
@@ -632,25 +610,43 @@ param containerName_01 string = 'general-blobcontainer'
    
     
 
-  //VNET HUB Module
-  module vnet_hub 'Modules/Network/VNet/VNet-Hub.bicep' = {
-    name: 'vnet-hub-module'
+  
+*/
+
+  //VNET Spoke DMZ Module
+  module vnet_spoke_DMZ 'Modules/Network/VNet/VNet-Spoke-DMZ.bicep' = {
+    name: 'vnet-spoke_DMZ-module'
     scope: resourceGroup(rg_01_name)
     params: {
       tags: tags
       location: location
-      bastion_nsg_id: nsg.outputs.bastion_nsg_id
+      public_nsg_id: nsg.outputs.public_nsg_id
+      vnet_spoke_DMZ_name: env_table[env].vnet_spoke_DMZ_name
+      vnet_spoke_DMZ_address_space : env_table[env].vnet_spoke_DMZ_address_space
+      subnet_spoke_DMZ_name : env_table[env].subnet_spoke_DMZ_name
+      subnet_spoke_DMZ_address_space : env_table[env].subnet_spoke_DMZ_address_space
+      virtualHubName : virtualHubName
+    }
+    dependsOn: [
+      nsg
+      //route_table
+    ]
+  }
+  
+
+  //VNET Spoke Shared Services Module
+  module vnet_ss_spoke 'Modules/Network/VNet/VNet-Spoke-SS.bicep' = {
+    name: 'vnet-ss-spoke-module'
+    scope: resourceGroup(rg_01_name)
+    params: {
+      tags: tags
+      location: location
       private_nsg_id: nsg.outputs.private_nsg_id
-      vnet_hub_name: env_table[env].vnet_hub_name
-      vnet_hub_address_space : env_table[env].vnet_hub_address_space
-      subnet_hub_gw_name : env_table[env].subnet_hub_gw_name
-      subnet_hub_fw_name : env_table[env].subnet_hub_fw_name
-      subnet_hub_bas_name : env_table[env].subnet_hub_bas_name
-      subnet_ss_name : env_table[env].subnet_hub_ss_name
-      subnet_hub_gw_adress_space : env_table[env].subnet_hub_gw_adress_space
-      subnet_hub_fw_address_space : env_table[env].subnet_hub_fw_address_space
-      subnet_hub_bas_address_space : env_table[env].subnet_hub_bas_address_space
-      subnet_hub_ss_address_space : env_table[env].subnet_hub_ss_address_space
+      vnet_spoke_ss_name: env_table[env].vnet_spoke_ss_name
+      vnet_spoke_ss_address_space : env_table[env].vnet_spoke_ss_address_space
+      subnet_spoke_ss_name : env_table[env].subnet_spoke_ss_name
+      subnet_spoke_ss_address_space : env_table[env].subnet_spoke_ss_address_space
+      virtualHubName : virtualHubName
     }
     dependsOn: [
       nsg
@@ -659,204 +655,30 @@ param containerName_01 string = 'general-blobcontainer'
   }
 
   
-
-  //VNET Spoke 001 Module
-  module vnet_spoke_001 'Modules/Network/VNet/VNet-Spoke-001.bicep' = {
-    name: 'vnet-spoke_001-module'
-    scope: resourceGroup(rg_01_name)
-    params: {
-      tags: tags
-      location: location
-      private_nsg_id: nsg.outputs.private_nsg_id
-      vnet_spoke_001_name: env_table[env].vnet_spoke_001_name
-      vnet_spoke_001_address_space : env_table[env].vnet_spoke_001_address_space
-      subnet_spoke_001_name : env_table[env].subnet_spoke_001_name
-      subnet_spoke_001_address_space : env_table[env].subnet_spoke_001_address_space
-      subnet_spoke_001_test_name : env_table[env].subnet_spoke_001_test_name
-      subnet_spoke_001_test_address_space : env_table[env].subnet_spoke_001_test_address_space
-    }
-    dependsOn: [
-      vnet_hub
-      //route_table
-    ]
-  }
-
-    //VNET Spoke 002 Module
-    module vnet_spoke_002 'Modules/Network/VNet/VNet-Spoke-002.bicep' = {
-      name: 'vnet-spoke_002-module'
+    //VNET Spoke Web Module
+    module vnet_spoke_web 'Modules/Network/VNet/VNet-Spoke-Web.bicep' = {
+      name: 'vnet-spoke_web-module'
       scope: resourceGroup(rg_01_name)
       params: {
         tags: tags
         location: location
         private_nsg_id: nsg.outputs.private_nsg_id
-        vnet_spoke_002_name: env_table[env].vnet_spoke_002_name
-        vnet_spoke_002_address_space : env_table[env].vnet_spoke_002_address_space
-        subnet_spoke_002_name : env_table[env].subnet_spoke_002_name
-        subnet_spoke_002_address_space : env_table[env].subnet_spoke_002_address_space
-        subnet_spoke_002_test_name : env_table[env].subnet_spoke_002_test_name
-        subnet_spoke_002_test_address_space : env_table[env].subnet_spoke_002_test_address_space
+        vnet_spoke_web_name: env_table[env].vnet_spoke_web_name
+        vnet_spoke_web_address_space : env_table[env].vnet_spoke_web_address_space
+        subnet_spoke_web_name : env_table[env].subnet_spoke_web_name
+        subnet_spoke_web_address_space : env_table[env].subnet_spoke_web_address_space
+        virtualHubName : virtualHubName
       }
       dependsOn: [
-        vnet_hub
+        nsg
         //route_table
       ]
     }
 
 
-        //VNET Spoke DMZ Module
-        module vnet_spoke_DMZ 'Modules/Network/VNet/VNet-Spoke-DMZ.bicep' = {
-          name: 'vnet-spoke_DMZ-module'
-          scope: resourceGroup(rg_01_name)
-          params: {
-            tags: tags
-            location: location
-            public_nsg_id: nsg.outputs.public_nsg_id
-            vnet_spoke_DMZ_name: env_table[env].vnet_spoke_DMZ_name
-            vnet_spoke_DMZ_address_space : env_table[env].vnet_spoke_DMZ_address_space
-            subnet_spoke_DMZ_name : env_table[env].subnet_spoke_DMZ_name
-            subnet_spoke_DMZ_APP_GW_name : env_table[env].subnet_spoke_DMZ_APP_GW_name
-            subnet_spoke_DMZ_APP_GW_address_space : env_table[env].subnet_spoke_DMZ_APP_GW_address_space
-          }
-          dependsOn: [
-            vnet_hub
-            //route_table
-          ]
-        }
+      
 
-    
-
-  //===Peering Modules
-
-    //Peering Module Spoke 001 to Hub
-    module peering_spoke_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
-      name: 'peering_module_spoke_001_to_hub'
-      scope: resourceGroup(rg_01_name)     
-      params: {
-        peering_name_spoke_to_hub : peering_name_spoke_001_to_hub     // spoke 001 to hub peering name
-        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
-        spokeallowForwardedTraffic : spokeallowForwardedTraffic
-        spokeallowGatewayTransit : spokeallowGatewayTransit
-        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
-        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
-        spokepeeringState : spokepeeringState
-        spokeuseRemoteGateways : spokeuseRemoteGateways
-      }
-      dependsOn: [
-        vnet_spoke_001
-        //route_table
-      ] 
-    }
-
-
-    //Peering Module Spoke 002 to Hub
-    module peering_spoke_to_hub_02 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
-      name: 'peering_module_spoke_002_to_hub'
-      scope: resourceGroup(rg_01_name)     
-      params: {
-        peering_name_spoke_to_hub : peering_name_spoke_002_to_hub     // spoke 001 to hub peering name
-        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
-        spokeallowForwardedTraffic : spokeallowForwardedTraffic
-        spokeallowGatewayTransit : spokeallowGatewayTransit
-        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
-        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
-        spokepeeringState : spokepeeringState
-        spokeuseRemoteGateways : spokeuseRemoteGateways
-      }
-      dependsOn: [
-        vnet_spoke_002
-        //route_table
-      ] 
-    }
-
-
-    //Peering Module Spoke DMZ to Hub
-    module peering_spoke_DMZ_to_hub 'Modules/Network/Peerings/peering_spoke_to_hub.bicep' = {
-      name: 'peering_module_spoke_DMZ_to_hub'
-      scope: resourceGroup(rg_01_name)     
-      params: {
-        peering_name_spoke_to_hub : peering_name_spoke_DMZ_to_hub     // spoke 001 to hub peering name
-        vnet_hub_id: vnet_hub.outputs.vnet_hub_id
-        spokeallowForwardedTraffic : spokeallowForwardedTraffic
-        spokeallowGatewayTransit : spokeallowGatewayTransit
-        spokeallowVirtualNetworkAccess : spokeallowVirtualNetworkAccess
-        //spokedoNotVerifyRemoteGateways : spokedoNotVerifyRemoteGateways  // May not need this.  Safe to remove 25-Jan-2023
-        spokepeeringState : spokepeeringState
-        spokeuseRemoteGateways : spokeuseRemoteGateways
-      }
-      dependsOn: [
-        vnet_hub
-        vnet_spoke_DMZ
-      ] 
-    }
-
-
-    // Peering Hub to Spoke 001
-    module peering_to_hub_001 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
-      name: 'peering_module_hub_to_spoke_001'
-      //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
-      scope: resourceGroup(rg_01_name)
-      params: {
-        peering_name_hub_to_spoke : peering_name_hub_to_spoke_001      // hub to spoke 001 peering name
-        vnet_spoke_id: vnet_spoke_001.outputs.vnet_spoke_001_id
-        huballowForwardedTraffic : huballowForwardedTraffic
-        huballowGatewayTransit : huballowGatewayTransit
-        huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
-        hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
-        hubpeeringState : hubpeeringState
-        hubuseRemoteGateways : hubuseRemoteGateways
-      }
-      dependsOn: [
-        vnet_hub
-        vnet_spoke_001
-      ] 
-    }
-
-
-        // Peering Hub to Spoke 002
-        module peering_to_hub_002 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
-          name: 'peering_module_hub_to_spoke_002'
-          //scope: resourceGroup('13a5d4c6-e4eb-4b92-9b1a-e044fe55d79c', 'tss-hub-rsg-network-01')     
-          scope: resourceGroup(rg_01_name)
-          params: {
-            peering_name_hub_to_spoke : peering_name_hub_to_spoke_002      // hub to spoke 001 peering name
-            vnet_spoke_id: vnet_spoke_002.outputs.vnet_spoke_002_id
-            huballowForwardedTraffic : huballowForwardedTraffic
-            huballowGatewayTransit : huballowGatewayTransit
-            huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
-            hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
-            hubpeeringState : hubpeeringState
-            hubuseRemoteGateways : hubuseRemoteGateways
-          }
-          dependsOn: [
-            vnet_hub
-            vnet_spoke_002
-          ] 
-        }
-
-
-        
-        // Peering Hub to Spoke DMZ
-        module peering_to_hub_DMZ 'Modules/Network/Peerings/peering_hub_to_spoke.bicep' = {
-          name: 'peering_module_hub_to_spoke_DMZ'
-          scope: resourceGroup(rg_01_name)
-          params: {
-            peering_name_hub_to_spoke : peering_name_hub_to_DMZ     // hub to spoke 001 peering name
-            vnet_spoke_id: vnet_spoke_DMZ.outputs.vnet_spoke_DMZ_id
-            huballowForwardedTraffic : huballowForwardedTraffic
-            huballowGatewayTransit : huballowGatewayTransit
-            huballowVirtualNetworkAccess : huballowVirtualNetworkAccess
-            hubdoNotVerifyRemoteGateways : hubdoNotVerifyRemoteGateways
-            hubpeeringState : hubpeeringState
-            hubuseRemoteGateways : hubuseRemoteGateways
-          }
-          dependsOn: [
-            vnet_hub
-            vnet_spoke_DMZ
-          ] 
-        }
-
-
-  
+  /*
   //Bastion Host Module
   module bastionHost 'Modules/Network/Bastion/bastion.bicep' = if (deployBastion) {
     name: 'bastion-host-module'
@@ -878,6 +700,9 @@ param containerName_01 string = 'general-blobcontainer'
   } 
 
 
+
+*/
+
 //Azure Firewall Module
 module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewallDeploy) {
   name: 'azure-firewall-module'
@@ -887,13 +712,14 @@ module azureFirewall 'Modules/Network/Firewall/Firewall.bicep' = if (azureFirewa
       location: location
       firewallName: firewallName
       firewallPolicyName: firewallPolicyName
-      azurepublicIpname: azurepublicIpname
-      fw_vnet: env_table[env].vnet_hub_name
+      //azurepublicIpname: azurepublicIpname
+      virtualHubId: vwan.outputs.virtualHubId
     }
     dependsOn: [
-      vnet_spoke_001
+      vwan
     ]
 } 
+
 
 //App Gateway Module
 module appGateway 'Modules/Network/App_Gateway/App_Gateway.bicep' = if (appGatewayDeploy) {
@@ -905,7 +731,7 @@ module appGateway 'Modules/Network/App_Gateway/App_Gateway.bicep' = if (appGatew
       virtualNetworkName: env_table[env].vnet_spoke_DMZ_name
       publicIPAddressAppGatewayName: publicIPAddressAppGatewayName
       applicationGateWayName: applicationGateWayName
-      subnet_spoke_DMZ_APP_GW_name: env_table[env].subnet_spoke_DMZ_APP_GW_name
+      subnet_spoke_DMZ_APP_GW_name: env_table[env].subnet_spoke_DMZ_name
       wafPolicyName: wafPolicyName
     }
     dependsOn: [
@@ -913,7 +739,7 @@ module appGateway 'Modules/Network/App_Gateway/App_Gateway.bicep' = if (appGatew
     ]
 } 
 
-
+/*
 //Private DNS Zone Module
 module privateDNS 'Modules/Network/DNS/Private_DNS.bicep' = if (privateDnsDeploy) {
   name: 'dns-zone-module'
@@ -935,47 +761,7 @@ module privateDNS 'Modules/Network/DNS/Private_DNS.bicep' = if (privateDnsDeploy
 //=========End of Network Modules=======//
 //===========================================//
 
-//===========================================//
-//=======Start of Backup and Recovery Modules=======//
-//===========================================//
 
-
-  module rsv_001 'Modules/BackUp/RecoveryServicesVault.bicep' = if (recoveryServicesVault) {
-    name: 'rsv-module'
-    scope: resourceGroup(rg_02_name)
-    params: {
-      tags: tags
-      location: location
-      vaultName: vaultName
-      sku: vaultSku
-    }
-    dependsOn: [
-      rg
-    ]
-  }
-
-
-
-  module backup 'Modules/BackUp/backup_policies.bicep' =  if (vmBackupEnabled) {
-    name: 'backup-policies-module'
-    scope: resourceGroup(rg_02_name)
-    params: {
-      vaultName: vaultName
-      location: location
-      tags: tags
-      BackupType: BackupType
-      backupPolicyName: backupPolicyName
-      env_prefix: env_table[env]
-    }
-    dependsOn: [
-      rsv_001
-    ]
-  }
-
-
-//===========================================//
-//====End of Backup and Recovery Modules=====//
-//===========================================//
 
 //=====================================================//
 //=======Start of Monitoring and Alerting Modules======//  
@@ -997,7 +783,7 @@ module action_group 'Modules/Monitoring/action_group.bicep' = if (actionGroupEna
     rg
   ]
 }
-
+*/
 
 //Log Analytics Workspace
 module law 'Modules/Log_Analytics/LogAnalytics.bicep' = if (logAnalyticsWorkspaceEnabled) {
@@ -1014,6 +800,7 @@ module law 'Modules/Log_Analytics/LogAnalytics.bicep' = if (logAnalyticsWorkspac
     ]
 }
 
+/*
 //Log Analytics Solutions Module
 module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLogAnalyticsSolutionsEnabled) {
   name: 'vm-insights-module'
@@ -1033,104 +820,7 @@ module solutions 'Modules/Log_Analytics/LogAnalytics_Solutions.bicep' = if (vmLo
     ]
 }
 
-/*
-// VM Monitoring CPU
-module monitoring_cpu 'Modules/Monitoring/monitoring_vmCpu.bicep' = if (vmMonitorCPUenabled) {
-  name: 'monitoring_cpu_module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    metricAlerts_vm_cpu_percentage_name : metricAlerts_vm_cpu_percentage_name
-    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
-    vmCpuPercentageAlert_location : vmCpuPercentageAlert_location
-    vmCpuPercentageAlert_severity : vmCpuPercentageAlert_severity
-    vmCpuPercentageAlert_enabled : vmCpuPercentageAlert_enabled
-    vmCpuPercentageAlert_scopes : vmCpuPercentageAlert_scopes
-    vmCpuPercentageAlert_evaluationFrequency : vmCpuPercentageAlert_evaluationFrequency
-    vmCpuPercentageAlert_windowSize : vmCpuPercentageAlert_windowSize
-    vmCpuPercentageAlert_threshold : vmCpuPercentageAlert_threshold
-    vmCpuPercentageAlert_targetResourceRegion : vmCpuPercentageAlert_targetResourceRegion
-  }
-  dependsOn: [
-    action_group
-  ]
-}
-
-
-
-// VM Monitoring System State
-module monitoring_vm_system_state 'Modules/Monitoring/monitoring_vmSystemState.bicep' = if (vmMonitorSystemState) {
-  name: 'monitoring_vm_system_state_module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    vmSysStateAlertName : vmSysStateAlertName
-    location : location
-    tags : tags
-    vmSysStateAlertDescription : vmSysStateAlertDescription
-    vmSysStateAlertSeverity : vmSysStateAlertSeverity
-    vmSysStateAlertEnabled : vmSysStateAlertEnabled
-    vmSysStateAlertScope_ids : vmSysStateAlertScope_ids
-    vmSysStateAlertwindowSize : vmSysStateAlertwindowSize
-    vmSysStateAlertEvalFrequency : vmSysStateAlertEvalFrequency
-    vmSysStateAlertQueryTimeRange : vmSysStateAlertQueryTimeRange
-    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
-    vmSysStateAlertQueryInterval : vmSysStateAlertQueryInterval
-    vmSysStateAlert_timeGenerated : vmSysStateAlert_timeGenerated
-  }
-  dependsOn: [
-    action_group
-  ]
-}
- 
-// VM Monitoring VM Memory
-module monitoring_vm_memory 'Modules/Monitoring/monitoring_vmMemory.bicep' = if (vmMonitorMemoryEnabled) {
-  name: 'monitoring_vm_memory_module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    location : location
-    tags : tags
-    metricAlerts_vm_memory_percentage_name : metricAlerts_vm_memory_percentage_name
-    vmMemoryPercentageAlert_percentageVal : vmMemoryPercentageAlert_percentageVal
-    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
-    vmMemoryPercentageAlert_description : vmMemoryPercentageAlert_description
-    vmMemoryPercentageAlert_severity : vmMemoryPercentageAlert_severity
-    vmMemoryPercentageAlert_enabled : vmMemoryPercentageAlert_enabled
-    vmMemoryPercentageAlert_scopes : vmMemoryPercentageAlert_scopes
-    vmMemoryPercentageAlert_evaluationFrequency : vmMemoryPercentageAlert_evaluationFrequency
-    vmMemoryPercentageAlert_windowSize : vmMemoryPercentageAlert_windowSize
-    vmMemoryPercentageAlert_threshold : vmMemoryPercentageAlert_threshold
-    vmMemoryPercentageAlert_overrideQueryTimeRange : vmMemoryPercentageAlert_overrideQueryTimeRange
-  }
-  dependsOn: [
-    action_group
-  ]
-}
-
-
-module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep' = if (vmMonitorDiskEnabled) {
-  name: 'monitoring_vm_disk_module'
-  scope: resourceGroup(rg_02_name)
-  params: {
-    location : location
-    tags : tags
-    actiongroups_externalid : action_group.outputs.actionGroups_Admins_name_resource_id
-    vmDiskUtilizationAlert__name : vmDiskUtilizationAlert__name
-    vmDiskUtilizationAlert_description : vmDiskUtilizationAlert_description
-    vmDiskUtilizationAlert_severity : vmDiskUtilizationAlert_severity
-    vmDiskUtilizationAlert_enabled : vmDiskUtilizationAlert_enabled
-    vmDiskUtilizationAlert_scopes : vmDiskUtilizationAlert_scopes
-    vmDiskUtilizationAlert_evaluationFrequency : vmDiskUtilizationAlert_evaluationFrequency
-    vmDiskUtilizationAlert_windowSize : vmDiskUtilizationAlert_windowSize
-    vmDiskUtilizationAlert_percentageVal : vmDiskUtilizationAlert_percentageVal
-  }
-  dependsOn: [
-    action_group
-  ]
-}
 */
-
-//==============================================//
-//====End of Monitoring and Alerting Modules====//
-//==============================================//
 
 //===========================================//
 //=======Start of Compute Modules============//
@@ -1151,18 +841,19 @@ module monitoring_vm_disk 'Modules/Monitoring/monitoring_vmDiskUtilization.bicep
       nicName: nicName_001
       tags: tags
       location: location
-      nicSubnetId: vnet_spoke_001.outputs.subnet_spoke_001_id
+      nicSubnetId: vnet_spoke_web.outputs.subnet_spoke_web_id
       userAssignedIdentityName: userAssignedIdentityName
       workspace_id : law.outputs.workspace_id
       workspace_id2 : law.outputs.workspaceIdOutput
       workspace_key: law.outputs.workspaceKeyOutput
     }
     dependsOn: [
-      law
+      //law
+      appGateway
     ]
   }
 
-
+/*
   module vm_002 'Modules/Compute/VirtualMachines.bicep' = if (deployVM2) {
     name: 'vm_002-module'
     scope: resourceGroup(rg_03_name)

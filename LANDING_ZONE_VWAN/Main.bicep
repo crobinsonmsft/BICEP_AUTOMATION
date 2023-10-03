@@ -550,7 +550,7 @@ param containerName_01 string = 'general-blobcontainer'
 //===========================================//
 
 
- //VWAN Module    // Creates all NSGs throughout deployment
+ //VWAN Module    // Creates VWAN
  module vwan 'Modules/Network/VWAN/vwan.bicep' = {
   name: 'vwan-module'
   scope: resourceGroup(rg_01_name)
@@ -628,7 +628,7 @@ param containerName_01 string = 'general-blobcontainer'
       virtualHubName : virtualHubName
     }
     dependsOn: [
-      nsg
+      vwan
       //route_table
     ]
   }
@@ -649,7 +649,7 @@ param containerName_01 string = 'general-blobcontainer'
       virtualHubName : virtualHubName
     }
     dependsOn: [
-      nsg
+      vwan
       //route_table
     ]
   }
@@ -670,7 +670,7 @@ param containerName_01 string = 'general-blobcontainer'
         virtualHubName : virtualHubName
       }
       dependsOn: [
-        nsg
+        vwan
         //route_table
       ]
     }

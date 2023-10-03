@@ -76,15 +76,17 @@ resource publicIpAddress 'Microsoft.Network/publicIPAddresses@2022-01-01' = [for
   }
 }]
 
-resource firewallPolicy 'Microsoft.Network/firewallPolicies@2022-01-01'= {
+resource firewallPolicy 'Microsoft.Network/firewallPolicies@2023-05-01'= {
   name: firewallPolicyName
   location: location
   tags: tags
   
   properties: {
     threatIntelMode: 'Alert'
+    sku: {
+      tier: 'Premium'
+    }
   }
-
 }
 /*
 resource networkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleCollectionGroups@2022-01-01' = {
@@ -206,15 +208,23 @@ resource firewall 'Microsoft.Network/azureFirewalls@2023-04-01' = {
   zones: ((length(availabilityZones) == 0) ? null : availabilityZones)
   properties: {
     sku: { 
-      name: 'AZFW_Hub'
+      name: 'AZFW_VNET'
       tier: 'Premium'
     }
-    ipConfigurations: azureFirewallIpConfigurations
+    /*
+    hubIPAddresses: {
+      publicIPs: {
+        count: 1
+      }
+    }
+   */
+   ipConfigurations: azureFirewallIpConfigurations
     //threatIntelMode: 'Alert'
     firewallPolicy: {
       id: firewallPolicy.id
     }
   }
 }
+
 
 output firewallPrivIP string = firewall.properties.ipConfigurations[0].properties.privateIPAddress

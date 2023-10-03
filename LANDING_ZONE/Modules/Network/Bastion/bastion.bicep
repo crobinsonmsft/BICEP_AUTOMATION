@@ -10,7 +10,7 @@ param publicIPAddressName string
 param publicIPsku string 
 param publicIPAllocationMethod string
 param publicIPAddressVersion string
-param dnsLabelPrefix string //Unique DNS Name for the Public IP used to access the Virtual Machine
+param dnsLabelPrefixBastion string //Unique DNS Name for the Public IP used to access the Virtual Machine
 //===============End Params===============//
 
 //======== Start Resource Creation =======//
@@ -51,7 +51,7 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
     publicIPAllocationMethod: publicIPAllocationMethod
     publicIPAddressVersion: publicIPAddressVersion
     dnsSettings: {
-      domainNameLabel: dnsLabelPrefix
+      domainNameLabel: dnsLabelPrefixBastion
     }
     idleTimeoutInMinutes: 4
   }

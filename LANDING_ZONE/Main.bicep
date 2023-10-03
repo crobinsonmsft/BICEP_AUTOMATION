@@ -269,7 +269,7 @@ var publicIPAddressName = 'PUB-IP-${env_table[env].envPrefix}-BASTION'
 param publicIPsku string = 'Standard'   //Should be Standard for Bastion Usage
 param publicIPAllocationMethod string = 'Static' //Should ALWAYS be Static for Bastion Usage
 param publicIPAddressVersion string = 'IPv4'
-param dnsLabelPrefix string = 'bastionpubip' //Unique DNS Name for the Public IP used to access the Virtual Machine
+param dnsLabelPrefixBastion string = 'bastionpubip01' //Unique DNS Name for the Public IP used to access the Virtual Machine
 
 //Bastion Host Parameters
 var bastionName = 'BASTION-${env_table[env].envPrefix}-001'
@@ -870,7 +870,7 @@ param containerName_01 string = 'general-blobcontainer'
         publicIPsku: publicIPsku
         publicIPAllocationMethod : publicIPAllocationMethod
         publicIPAddressVersion : publicIPAddressVersion
-        dnsLabelPrefix : dnsLabelPrefix
+        dnsLabelPrefixBastion : dnsLabelPrefixBastion
       }
       dependsOn: [
         vnet_spoke_001

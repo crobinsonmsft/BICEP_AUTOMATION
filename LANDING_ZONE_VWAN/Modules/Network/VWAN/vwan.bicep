@@ -1,11 +1,11 @@
 
-param location string = 'East US' // Update with your desired location
-param virtualWanName string = 'myVirtualWan'
-param virtualHubName string = 'myVirtualHub'
+param location string
+param virtualWanName string
+param virtualHubName string
 param tags object
 param vwanHubAddressPrefix string
 
-resource virtualWan 'Microsoft.Network/virtualWans@2021-02-01' = {
+resource virtualWan 'Microsoft.Network/virtualWans@2023-05-01' = {
   name: virtualWanName
   location: location
   tags: tags
@@ -25,6 +25,7 @@ resource virtualHub 'Microsoft.Network/virtualHubs@2021-02-01' = {
       id: virtualWan.id
     }
     addressPrefix: vwanHubAddressPrefix
+    //type: standard
   }
 }
 

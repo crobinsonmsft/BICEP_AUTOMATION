@@ -19,8 +19,8 @@ targetScope = 'subscription'        // We will deploy these modules against our 
       param privateDnsDeploy bool = false
 
       //Virtual Machine Options
-      param deployBastion bool = false
-      param deployVM1 bool = false
+      param deployBastion bool = true
+      param deployVM1 bool = true
       param deployVM2 bool = false
 
             //Post Virtual Machine Deployment Software Installs
@@ -463,7 +463,7 @@ param adminUsername string = 'azureadmin'
 @description('Password for the Virtual Machine.')
 @minLength(12)
 @secure()
-param adminpass string = 'Incredibl3#512ABC'
+param adminpass string = '**************'
 
 @description('Name of the virtual machine.')
 param vmName_001 string = 'VM-${env_table[env].envPrefix}-001'

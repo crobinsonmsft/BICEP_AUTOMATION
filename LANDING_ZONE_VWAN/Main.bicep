@@ -422,7 +422,7 @@ param adminUsername string = 'azureadmin'
 @description('Password for the Virtual Machine.')
 @minLength(12)
 @secure()
-param adminpass string = 'Incredibl3#512ABC'
+param adminpass string = '************'
 
 @description('Name of the virtual machine.')
 param vmName_001 string = 'VM-${env_table[env].envPrefix}-001'
